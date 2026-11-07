@@ -5,6 +5,7 @@ from django_utils.models import CreatedByMixin, UUIDMixin
 
 __all__ = [
     "RequestUserSerializerMixin",
+    "GatedFieldsSerializerMixin",
     "UUIDMixinSerializer",
     "CreatedByMixinSerializer",
     "CreatedByAndUUIDMixinSerializer",
@@ -31,6 +32,31 @@ class RequestUserSerializerMixin:
         if not user.has_perm(perm):
             raise serializers.ValidationError(_("You do not have permission."))
         return user
+
+
+class GatedFieldsSerializerMixin(RequestUserSerializerMixin):
+    """Reserve some fields to the users having a permission.
+
+    ``gated_fields`` maps field names to permissions. Writing a non-empty value in such a field without the
+    permission is a validation error on this field; empty values are ignored, as they are a no-op.
+    Must come before the serializer base class::
+
+        class AmbienceSerializer(GatedFieldsSerializerMixin, serializers.ModelSerializer):
+            gated_fields = {"on_start": "my_app.set_on_start"}
+    """
+
+    gated_fields = {}
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        denied = {
+            field: _("You do not have permission to edit this field.")
+            for field, perm in self.gated_fields.items()
+            if attrs.get(field) and not self.check_user().has_perm(perm)
+        }
+        if denied:
+            raise serializers.ValidationError(denied)
+        return attrs
 
 
 class UUIDMixinSerializer(serializers.ModelSerializer):

@@ -69,6 +69,28 @@ REST_FRAMEWORK = {
 `HTMXRenderer` looks for `<app_label>/partials/<model>_<list|detail|form|action>_partial.html` and falls back to
 `django_utils/htmx/default_partial.html`. Subclass it to change `partials_path`.
 
+## Gated features (`django_utils.gating`)
+
+A gated feature is a Django permission reserved for some users (e.g. a subscription plan). Models declare theirs:
+
+```python
+class Ambience(models.Model):
+    gated_features = ["my_app.set_on_start"]
+
+    class Meta:
+        permissions = [("set_on_start", "Can set the on_start of an ambience")]
+```
+
+- A system check (`django_utils.E001` to `E003`) rejects malformed, unknown or ambiguous entries.
+- `get_user_gated_features(user)` returns `{"set_on_start": True/False}` (`GatedFeaturesView` serves it as JSON).
+- `ExtraPermissionsBackend` is a `ModelBackend` with one hook, `get_extra_permissions(user)`, to grant permissions
+  coming from elsewhere (a subscription for instance). Add the subclass to `AUTHENTICATION_BACKENDS`.
+- `{% load django_utils_gating %}{% gated_block "set_on_start" %}...{% endgated_block %}` renders Alpine.js
+  `x-if="permissions.set_on_start"` branches, with a locked message as fallback. Override
+  `django_utils/gating/gated_block.html` to change the markup or the message.
+- `GatedFieldsSerializerMixin` (extra `drf`): `gated_fields = {"on_start": "my_app.set_on_start"}` makes the serializer
+  refuse non-empty values for these fields when the user lacks the permission.
+
 ## Development
 
 ```bash

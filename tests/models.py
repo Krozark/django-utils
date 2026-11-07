@@ -44,3 +44,17 @@ class OwnedUUIDItem(UUIDMixin, CreatedByMixin):
 
 class FileItem(models.Model):
     file = models.FileField(storage=InMemoryStorage(), blank=True)
+
+
+class GatedItem(models.Model):
+    gated_features = ["tests.use_secret"]
+
+    name = models.CharField(max_length=50, blank=True)
+    secret = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        permissions = [("use_secret", "Can use the secret")]
+
+
+class GatedChildItem(GatedItem):
+    """Inherits ``gated_features``, which must not be listed twice."""
