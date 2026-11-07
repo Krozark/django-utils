@@ -1,10 +1,11 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import SimpleTestCase, TestCase
 from django.utils import timezone
 
-from django_utils.models import ClassRegistryMixin
+from django_utils.models import ClassRegistryMixin, PermissionCacheMixin
 
 from .models import OwnedItem, PublicItem, SizedItem, SoftDeletableItem, UUIDItem, VersionedItem
 
@@ -161,3 +162,35 @@ class ClassRegistryMixinTests(SimpleTestCase):
 
             class Concrete(IncompleteRoot):
                 _meta = _FakeMeta(abstract=False)
+
+
+class PermissionCacheMixinTests(TestCase):
+    def test_clear_permission_cache_forgets_the_cached_permissions(self):
+        class User(PermissionCacheMixin):
+            pass
+
+        user = User()
+        user._perm_cache = user._user_perm_cache = user._group_perm_cache = set()
+        user.other = "kept"
+
+        user.clear_permission_cache()
+
+        self.assertEqual(vars(user), {"other": "kept"})
+
+    def test_clear_permission_cache_without_cache_is_a_no_op(self):
+        PermissionCacheMixin().clear_permission_cache()
+
+    def test_permissions_are_checked_again_after_clearing(self):
+        class CachedUser(PermissionCacheMixin, get_user_model()):
+            class Meta:
+                proxy = True
+                app_label = "tests"
+
+        user = CachedUser.objects.create_user(username="cached")
+        self.assertFalse(user.has_perm("tests.add_owneditem"))
+
+        user.user_permissions.add(Permission.objects.get(codename="add_owneditem"))
+        self.assertFalse(user.has_perm("tests.add_owneditem"))  # still cached
+
+        user.clear_permission_cache()
+        self.assertTrue(user.has_perm("tests.add_owneditem"))

@@ -35,6 +35,8 @@ Compatible with Django 5.0+ and 6.x, Python 3.12+.
 | `StorageSizeMixin` | `storage_size` in bytes, refreshed on each save through `update_size()` |
 | `SoftDeletionMixin` | soft delete with a grace period |
 | `ClassRegistryMixin` | self-registration of concrete subclasses |
+| `PermissionCacheMixin` | for user models: `clear_permission_cache()` after the permissions of a user changed |
+| `AbstractSubscriptionPlan` | abstract plan with `groups` and `user_permissions`; `get_permissions()` feeds an `ExtraPermissionsBackend` (one concrete plan model per project) |
 
 ## Admin, forms and helpers
 

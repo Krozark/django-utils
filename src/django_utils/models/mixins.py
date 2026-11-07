@@ -18,6 +18,7 @@ __all__ = [
     "StorageSizeMixin",
     "UUIDMixin",
     "ClassRegistryMixin",
+    "PermissionCacheMixin",
 ]
 
 
@@ -212,3 +213,18 @@ class ClassRegistryMixin:
     def _registry_key(cls) -> str:
         """Return the key this concrete subclass registers itself under. Must be overridden."""
         raise NotImplementedError
+
+
+class PermissionCacheMixin:
+    """Mixin for user models: forget the permissions Django cached on the instance.
+
+    ``ModelBackend`` caches the permissions on the user object the first time they are checked. When they
+    change (e.g. a subscription is activated), call ``clear_permission_cache()`` so that the next check
+    reflects the current state.
+    """
+
+    PERMISSION_CACHE_ATTRIBUTES = ("_perm_cache", "_user_perm_cache", "_group_perm_cache")
+
+    def clear_permission_cache(self):
+        for attribute in self.PERMISSION_CACHE_ATTRIBUTES:
+            self.__dict__.pop(attribute, None)

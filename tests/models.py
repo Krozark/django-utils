@@ -2,6 +2,7 @@ from django.core.files.storage import InMemoryStorage
 from django.db import models
 
 from django_utils.models import (
+    AbstractSubscriptionPlan,
     AutoVersionFieldMixin,
     CreatedByMixin,
     IsPublicMixin,
@@ -58,3 +59,7 @@ class GatedItem(models.Model):
 
 class GatedChildItem(GatedItem):
     """Inherits ``gated_features``, which must not be listed twice."""
+
+
+class Plan(AbstractSubscriptionPlan):
+    pass
