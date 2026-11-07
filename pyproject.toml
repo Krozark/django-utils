@@ -3,12 +3,19 @@ name = "django-utils"
 version = "0.1.0"
 description = "Reusable Django utilities (models, mixins, helpers) shared across projects."
 readme = "README.md"
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
 authors = [{ name = "Krozark" }]
 requires-python = ">=3.12"
-dependencies = ["django>=5.2"]
+dependencies = ["django>=5.0"]
 classifiers = [
     "Framework :: Django",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
+    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

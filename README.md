@@ -17,6 +17,8 @@ INSTALLED_APPS = [
 ]
 ```
 
+Compatible with Django 5.0+ and 6.x, Python 3.12+.
+
 ## Development
 
 ```bash
@@ -33,3 +35,7 @@ uv build                                                 # build sdist and wheel
 - Imports at the top of the file, grouped (stdlib, third-party, Django, local), with `__all__`.
 - Line length: 120 characters (Ruff).
 - Tests use Django's `unittest` (`django.test`), not pytest.
+
+## License
+
+[BSD 2-Clause](LICENSE)
