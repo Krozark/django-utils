@@ -1,0 +1,36 @@
+[project]
+name = "django-utils"
+version = "0.1.0"
+description = "Reusable Django utilities (models, mixins, helpers) shared across projects."
+readme = "README.md"
+authors = [{ name = "Krozark" }]
+requires-python = ">=3.12"
+dependencies = ["django>=5.2"]
+classifiers = [
+    "Framework :: Django",
+    "Framework :: Django :: 5.2",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[dependency-groups]
+dev = ["pre-commit", "ruff"]
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+lint.select = ["E", "F", "UP", "B", "SIM", "I"]
+lint.ignore = ["SIM108", "UP031", "E722", "SIM115", "SIM102", "SIM110"]
+lint.fixable = ["ALL"]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
