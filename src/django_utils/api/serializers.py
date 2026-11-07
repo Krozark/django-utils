@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -47,16 +49,23 @@ class GatedFieldsSerializerMixin(RequestUserSerializerMixin):
 
     gated_fields = {}
 
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        denied = {
-            field: _("You do not have permission to edit this field.")
-            for field, perm in self.gated_fields.items()
-            if attrs.get(field) and not self.check_user().has_perm(perm)
-        }
-        if denied:
-            raise serializers.ValidationError(denied)
-        return attrs
+    def to_internal_value(self, data):
+        # Checked on the raw data, so that the denial is reported even when other fields are invalid.
+        denied = {}
+        if isinstance(data, Mapping):
+            denied = {
+                field: _("You do not have permission to edit this field.")
+                for field, perm in self.gated_fields.items()
+                if data.get(field) and not self.check_user().has_perm(perm)
+            }
+        if not denied:
+            return super().to_internal_value(data)
+
+        try:
+            super().to_internal_value(data)
+        except serializers.ValidationError as exc:
+            denied = {**exc.detail, **denied}
+        raise serializers.ValidationError(denied)
 
 
 class UUIDMixinSerializer(serializers.ModelSerializer):

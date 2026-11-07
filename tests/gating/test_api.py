@@ -42,6 +42,12 @@ class GatedFieldsSerializerMixinTests(TestCase):
         self.grant()
         self.assertTrue(self.serializer({"name": "a", "secret": "x"}).is_valid())
 
+    def test_denial_is_reported_even_when_other_fields_are_invalid(self):
+        serializer = self.serializer({"name": "x" * 100, "secret": "x"})
+
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(sorted(serializer.errors), ["name", "secret"])
+
     def test_empty_value_is_a_no_op(self):
         self.assertTrue(self.serializer({"name": "a", "secret": ""}).is_valid())
 
