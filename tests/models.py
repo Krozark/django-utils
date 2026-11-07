@@ -35,3 +35,7 @@ class SizedItem(StorageSizeMixin):
 
 class UUIDItem(UUIDMixin):
     pass
+
+
+class OwnedUUIDItem(UUIDMixin, CreatedByMixin):
+    pass

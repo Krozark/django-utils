@@ -33,6 +33,14 @@ Compatible with Django 5.0+ and 6.x, Python 3.12+.
 | `SoftDeletionMixin` | soft delete with a grace period |
 | `ClassRegistryMixin` | self-registration of concrete subclasses |
 
+## Admin, forms and helpers
+
+- `django_utils.admin`: `CreatedByAdminMixin` (users only see and edit their own objects, with a username filter),
+  `IsPublicAdminMixin`, `ReadOnlyAdminMixin`. The username filter uses a template shipped with the app, so
+  `django_utils` must be in `INSTALLED_APPS`.
+- `django_utils.forms.FileSizeField`: accepts `100MB`, `1 GB`... and cleans to bytes.
+- `django_utils.utils`: `md5_checksum`, `set_m2m`, `lookup_by_uuid`, `get_model_permission`.
+
 ## Development
 
 ```bash
