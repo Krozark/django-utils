@@ -1,5 +1,6 @@
 from django.core.files.storage import InMemoryStorage
 from django.db import models
+from private_storage.fields import PrivateFileField
 
 from django_utils.models import (
     AbstractSubscriptionPlan,
@@ -67,3 +68,7 @@ class Plan(AbstractSubscriptionPlan):
 
 class OtherPlan(AbstractSubscriptionPlan):
     """A second concrete plan model must not clash with the first one."""
+
+
+class PrivateFileItem(models.Model):
+    file = PrivateFileField(upload_to="items", blank=True)

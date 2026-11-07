@@ -10,3 +10,4 @@ First release candidate. Content:
 - Add `django_utils.api` (extra `drf`): permissions, serializer mixins, standard response envelope (renderer and exception handler), HTMX renderer, pagination, `UUIDInFilter`, `PrivateFileDownloaderMixin`.
 - Add `django_utils.gating`: gated features registry and system checks, `ExtraPermissionsBackend`, `{% gated_block %}` template tag, `GatedFieldsSerializerMixin` and `GatedFeaturesView`.
 - Add `PermissionCacheMixin` and `AbstractSubscriptionPlan`.
+- Add `DryRunCommand` and `CleanupCommand`, `SoftDeletionMixin.get_expired()`, `rsa_keys` (extra `crypto`) and `PrivateStorageFileViewer` (extra `private-storage`).

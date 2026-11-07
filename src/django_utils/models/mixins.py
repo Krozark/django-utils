@@ -107,6 +107,11 @@ class SoftDeletionMixin(models.Model):
     class Meta:
         abstract = True
 
+    @classmethod
+    def get_expired(cls):
+        """Return the objects whose grace period is over: they can now be hard-deleted."""
+        return cls._default_manager.filter(is_deleted=True, deletion_scheduled_for__lte=timezone.now())
+
     def schedule_deletion(self, grace_days=30):
         """Mark as deleted and schedule hard deletion after grace_days."""
         now = timezone.now()

@@ -1,3 +1,5 @@
+import tempfile
+
 SECRET_KEY = "test"  # noqa: S105
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -41,3 +43,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "django_utils.api.pagination.StandardResultsSetPagination",
     "PAGE_SIZE": 2,
 }
+
+PRIVATE_STORAGE_ROOT = tempfile.mkdtemp(prefix="django-utils-private-")
+PRIVATE_STORAGE_AUTH_FUNCTION = "private_storage.permissions.allow_authenticated"

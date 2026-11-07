@@ -12,8 +12,14 @@ settings, overridable templates), never through imports of the project.
 uv add "django-utils @ git+https://github.com/Krozark/django-utils.git"
 ```
 
-The REST framework helpers (`django_utils.api`) need the `drf` extra:
-`uv add "django-utils[drf] @ git+https://github.com/Krozark/django-utils.git"`.
+Optional features come with extras, for instance
+`uv add "django-utils[drf,crypto] @ git+https://github.com/Krozark/django-utils.git"`:
+
+| Extra | For |
+|---|---|
+| `drf` | the REST framework helpers (`django_utils.api`) |
+| `private-storage` | `django_utils.api.private_storage` (also needs DRF) |
+| `crypto` | `django_utils.rsa_keys` |
 
 Then add it to `INSTALLED_APPS`:
 
@@ -35,11 +41,13 @@ src/django_utils/
 ├── admin.py         # admin mixins
 ├── forms/fields.py  # FileSizeField
 ├── utils.py         # helpers
+├── rsa_keys.py      # (extra "crypto") RSA key pairs from the environment, generated in development
+├── management/      # base.py: DryRunCommand, CleanupCommand
 ├── gating/          # registry, system checks, ExtraPermissionsBackend
 ├── templatetags/    # django_utils_gating ({% gated_block %})
 ├── templates/       # default templates, all under django_utils/
 └── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
-                     # pagination, filters, views
+                     # pagination, filters, views, private_storage
 ```
 
 ## Model mixins
@@ -53,7 +61,7 @@ src/django_utils/
 | `IsPublicMixin` | `is_public` flag + `manager_public` manager |
 | `VersionFieldMixin` / `AutoVersionFieldMixin` | `version` counter, auto-incremented when a field changes |
 | `StorageSizeMixin` | `storage_size` in bytes, refreshed on each save through `update_size()` |
-| `SoftDeletionMixin` | soft delete with a grace period |
+| `SoftDeletionMixin` | soft delete with a grace period; `get_expired()` returns what can be hard-deleted |
 | `ClassRegistryMixin` | self-registration of concrete subclasses |
 | `PermissionCacheMixin` | for user models: `clear_permission_cache()` after the permissions of a user changed |
 | `AbstractSubscriptionPlan` | abstract plan with `groups` and `user_permissions`; `get_permissions()` feeds an `ExtraPermissionsBackend` (several concrete plan models can coexist) |
@@ -65,6 +73,10 @@ src/django_utils/
   `django_utils` must be in `INSTALLED_APPS`.
 - `django_utils.forms.FileSizeField` (`forms/fields.py`): accepts `100MB`, `1 GB`... and cleans to bytes.
 - `django_utils.utils`: `md5_checksum`, `set_m2m`, `lookup_by_uuid`, `get_model_permission`.
+- `django_utils.management.base`: `DryRunCommand` (a `--dry-run` option, `self.dry_run`) and `CleanupCommand`
+  (deletes the objects of `get_queryset()`, with `--dry-run` and a report).
+- `django_utils.rsa_keys` (extra `crypto`): `load_rsa_key_pair()` reads a PEM key pair from environment variables;
+  `ensure_dev_keys()` generates and stores the missing ones in `.env` for development.
 
 ## REST framework (`django_utils.api`, extra `drf`)
 
@@ -75,7 +87,8 @@ src/django_utils/
 | `envelope`, `renderers`, `handlers` | standard response `{success, status_code, data, message, errors}`: `StandardJSONRenderer` and `custom_exception_handler`; `HTMXRenderer` returns HTML partials for `?format=htmx` |
 | `pagination` | `StandardResultsSetPagination` (`{results, pagination}`) |
 | `filters` | `UUIDInFilter` (comma-separated UUIDs) |
-| `views` | `PrivateFileDownloaderMixin` (`download` action) |
+| `views` | `PrivateFileDownloaderMixin` (`download` action), `GatedFeaturesView` |
+| `private_storage` | `PrivateStorageFileViewer`: serves the private file of an object through `django-private-storage` (extra `private-storage`) |
 
 ```python
 REST_FRAMEWORK = {

@@ -7,7 +7,7 @@ supporting Django 5.0 to 6.x and Python 3.12+. See `README.md` for the module ov
 
 - **Project-agnostic**: no reference to any project, domain or product. Specific behaviour is a hook (method to
   override, overridable template under `django_utils/`), never an import of the project.
-- **Optional dependencies go in extras** (`drf` for `django_utils.api`); the core imports only Django and
+- **Optional dependencies go in extras** (`drf` for `django_utils.api`, `private-storage`, `crypto`); the core imports only Django and
   `django-dirtyfields`. Nothing in the core may import `django_utils.api`.
 - **Models are abstract** (mixins, `AbstractSubscriptionPlan`): the lib has no migration and no table.
 - Reverse names of fields in abstract models use `%(app_label)s_%(class)s_...` so that several models can coexist.

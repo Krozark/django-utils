@@ -68,6 +68,14 @@ class SoftDeletionMixinTests(TestCase):
         self.assertTrue(self.item.is_deleted)
         self.assertEqual(self.item.deletion_scheduled_for - self.item.deleted_at, timedelta(days=10))
 
+    def test_get_expired_returns_objects_past_their_grace_period(self):
+        expired = SoftDeletableItem.objects.create()
+        expired.schedule_deletion(grace_days=-1)
+        self.item.schedule_deletion(grace_days=10)
+        SoftDeletableItem.objects.create()  # not deleted
+
+        self.assertEqual(list(SoftDeletableItem.get_expired()), [expired])
+
     def test_cancel_deletion(self):
         self.item.schedule_deletion()
         self.item.cancel_deletion()
