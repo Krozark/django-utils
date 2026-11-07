@@ -1,6 +1,10 @@
 # django-utils
 
-Reusable Django utilities (models, mixins, helpers) shared across projects.
+Reusable Django utilities shared across projects: model and admin mixins, form fields, helpers, Django REST
+framework building blocks, and a small framework to reserve features to some users ("gated features").
+
+Everything here is project-agnostic. Project-specific behaviour is plugged in through hooks (methods to override,
+settings, overridable templates), never through imports of the project.
 
 ## Installation
 
@@ -22,6 +26,22 @@ INSTALLED_APPS = [
 
 Compatible with Django 5.0+ and 6.x, Python 3.12+.
 
+## Layout
+
+```
+src/django_utils/
+├── models/          # mixins.py (UUID, created by, public, version, storage, soft deletion, registry,
+│                    #            permission cache) and subscription.py (AbstractSubscriptionPlan)
+├── admin.py         # admin mixins
+├── forms/fields.py  # FileSizeField
+├── utils.py         # helpers
+├── gating/          # registry, system checks, ExtraPermissionsBackend
+├── templatetags/    # django_utils_gating ({% gated_block %})
+├── templates/       # default templates, all under django_utils/
+└── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
+                     # pagination, filters, views
+```
+
 ## Model mixins
 
 `django_utils.models` provides abstract models and helpers:
@@ -36,7 +56,7 @@ Compatible with Django 5.0+ and 6.x, Python 3.12+.
 | `SoftDeletionMixin` | soft delete with a grace period |
 | `ClassRegistryMixin` | self-registration of concrete subclasses |
 | `PermissionCacheMixin` | for user models: `clear_permission_cache()` after the permissions of a user changed |
-| `AbstractSubscriptionPlan` | abstract plan with `groups` and `user_permissions`; `get_permissions()` feeds an `ExtraPermissionsBackend` (one concrete plan model per project) |
+| `AbstractSubscriptionPlan` | abstract plan with `groups` and `user_permissions`; `get_permissions()` feeds an `ExtraPermissionsBackend` (several concrete plan models can coexist) |
 
 ## Admin, forms and helpers
 
@@ -93,10 +113,19 @@ class Ambience(models.Model):
 - `GatedFieldsSerializerMixin` (extra `drf`): `gated_fields = {"on_start": "my_app.set_on_start"}` makes the serializer
   refuse non-empty values for these fields when the user lacks the permission.
 
+## Customizing
+
+- **Templates** live under `django_utils/`; override them from your own app. Put your app **before** `django_utils`
+  in `INSTALLED_APPS`: Django uses the first template found.
+- **Hooks**: `ExtraPermissionsBackend.get_extra_permissions()`, `HTMXRenderer.partials_path` /
+  `action_suffixes`, `GatedFieldsSerializerMixin.gated_fields`, `StorageSizeMixin.update_size()`,
+  `ClassRegistryMixin.get_registry()`.
+- **System checks** `django_utils.E001` to `E003` validate the `gated_features` of your models.
+
 ## Development
 
 ```bash
-uv sync                                                  # create the venv and install dev tools
+uv sync --all-extras                                    # create the venv, install dev tools and extras
 uv run python -m django test --settings=tests.settings   # run the tests
 uv run ruff check . && uv run ruff format .              # lint and format
 uv run pre-commit install                                # enable git hooks
