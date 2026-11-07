@@ -63,3 +63,7 @@ class GatedChildItem(GatedItem):
 
 class Plan(AbstractSubscriptionPlan):
     pass
+
+
+class OtherPlan(AbstractSubscriptionPlan):
+    """A second concrete plan model must not clash with the first one."""

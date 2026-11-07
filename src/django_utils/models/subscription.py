@@ -13,22 +13,19 @@ class AbstractSubscriptionPlan(models.Model):
 
     Add the limits and the features of your own plans in the concrete model. The permissions of a plan are
     given to users by a backend (see ``ExtraPermissionsBackend``) using ``get_permissions()``.
-
-    The reverse names of ``groups`` and ``user_permissions`` are fixed (``subscription_plans``), so a project
-    can have only one concrete plan model.
     """
 
     name = models.CharField(max_length=20, unique=True, help_text=_("Subscription plan"))
     groups = models.ManyToManyField(
         Group,
         blank=True,
-        related_name="subscription_plans",
+        related_name="%(app_label)s_%(class)s_related",
         help_text=_("Django groups whose permissions are granted to users with active subscriptions"),
     )
     user_permissions = models.ManyToManyField(
         Permission,
         blank=True,
-        related_name="subscription_plans",
+        related_name="%(app_label)s_%(class)s_related",
         help_text=_("Specific permissions granted to users with active subscriptions"),
     )
     description = models.TextField(blank=True, null=True, help_text=_("Description of the plan"))
@@ -43,4 +40,4 @@ class AbstractSubscriptionPlan(models.Model):
 
     def get_permissions(self):
         """Return the permissions granted by the plan: its own ones and the ones of its groups."""
-        return Permission.objects.filter(Q(group__subscription_plans=self) | Q(subscription_plans=self))
+        return Permission.objects.filter(Q(group__in=self.groups.all()) | Q(pk__in=self.user_permissions.all()))

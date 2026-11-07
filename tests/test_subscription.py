@@ -5,7 +5,7 @@ from django.test import TestCase
 from django_utils.gating.backends import ExtraPermissionsBackend
 
 from .helpers import create_user
-from .models import Plan
+from .models import OtherPlan, Plan
 
 
 def permission(codename):
@@ -44,3 +44,25 @@ class AbstractSubscriptionPlanTests(TestCase):
         backend.plan = self.plan
 
         self.assertEqual(backend.get_all_permissions(create_user()), {"tests.add_plan", "tests.view_plan"})
+
+
+class SeveralPlanModelsTests(TestCase):
+    def test_plan_models_do_not_share_their_permissions(self):
+        group = Group.objects.create(name="shared")
+        group.permissions.add(permission("add_plan"))
+        plan = Plan.objects.create(name="a")
+        plan.groups.add(group)
+        other = OtherPlan.objects.create(name="a")
+        other.user_permissions.add(permission("view_plan"))
+
+        self.assertEqual(set(plan.get_permissions().values_list("codename", flat=True)), {"add_plan"})
+        self.assertEqual(set(other.get_permissions().values_list("codename", flat=True)), {"view_plan"})
+
+    def test_permission_in_several_groups_is_granted_once(self):
+        plan = Plan.objects.create(name="a")
+        for name in ("g1", "g2"):
+            group = Group.objects.create(name=name)
+            group.permissions.add(permission("add_plan"))
+            plan.groups.add(group)
+
+        self.assertEqual(set(plan.get_permissions().values_list("codename", flat=True)), {"add_plan"})
