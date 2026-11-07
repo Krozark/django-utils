@@ -7,6 +7,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.messages",
     "django.contrib.sessions",
+    "django_filters",
+    "rest_framework",
     "django_utils",
     "tests",
 ]
@@ -29,3 +31,13 @@ TEMPLATES = [
     }
 ]
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "django_utils.api.renderers.StandardJSONRenderer",
+        "django_utils.api.renderers.HTMXRenderer",
+    ],
+    "EXCEPTION_HANDLER": "django_utils.api.handlers.custom_exception_handler",
+    "DEFAULT_PAGINATION_CLASS": "django_utils.api.pagination.StandardResultsSetPagination",
+    "PAGE_SIZE": 2,
+}

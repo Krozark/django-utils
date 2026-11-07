@@ -1,0 +1,22 @@
+{# Default fallback template for HTMXRenderer when no specific partial exists #}
+{% if data.results is not None %}
+    {# Paginated list response #}
+    {% for item in data.results %}
+    <div class="card">
+        {% for key, value in item.items %}
+        <div><strong>{{ key }}:</strong> {{ value }}</div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <p>No results.</p>
+    {% endfor %}
+{% elif data.items %}
+    {# Single object response #}
+    <div class="card">
+        {% for key, value in data.items %}
+        <div><strong>{{ key }}:</strong> {{ value }}</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <pre>{{ data }}</pre>
+{% endif %}

@@ -1,3 +1,4 @@
+from django.core.files.storage import InMemoryStorage
 from django.db import models
 
 from django_utils.models import (
@@ -39,3 +40,7 @@ class UUIDItem(UUIDMixin):
 
 class OwnedUUIDItem(UUIDMixin, CreatedByMixin):
     pass
+
+
+class FileItem(models.Model):
+    file = models.FileField(storage=InMemoryStorage(), blank=True)
