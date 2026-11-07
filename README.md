@@ -44,7 +44,7 @@ src/django_utils/
 ├── rsa_keys.py      # (extra "crypto") RSA key pairs from the environment, generated in development
 ├── management/      # base.py: DryRunCommand, CleanupCommand
 ├── gating/          # registry, system checks, ExtraPermissionsBackend
-├── templatetags/    # django_utils_gating ({% gated_block %})
+├── templatetags/    # django_utils_gating ({% gated_block %}), django_utils_tags (language_flag)
 ├── templates/       # default templates, all under django_utils/
 └── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
                      # pagination, filters, views, private_storage

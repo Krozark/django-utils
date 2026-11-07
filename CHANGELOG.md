@@ -11,3 +11,4 @@ First release candidate. Content:
 - Add `django_utils.gating`: gated features registry and system checks, `ExtraPermissionsBackend`, `{% gated_block %}` template tag, `GatedFieldsSerializerMixin` and `GatedFeaturesView`.
 - Add `PermissionCacheMixin` and `AbstractSubscriptionPlan`.
 - Add `DryRunCommand` and `CleanupCommand`, `SoftDeletionMixin.get_expired()`, `rsa_keys` (extra `crypto`) and `PrivateStorageFileViewer` (extra `private-storage`).
+- Add the `language_flag` template filter (`django_utils_tags`).
