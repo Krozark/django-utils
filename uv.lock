@@ -44,11 +44,24 @@ wheels = [
 ]
 
 [[package]]
+name = "django-dirtyfields"
+version = "1.9.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/0d/0c7d727f7f14f82450b72e5213c6ed0da3d16add2de2e59d46aea6b6eaa2/django_dirtyfields-1.9.9.tar.gz", hash = "sha256:c11c8e03827166d2c91f6634a4d10f5aa5cc7ea430d60e5bd576b3ebf319172f", size = 22209, upload-time = "2026-01-22T13:48:58.777Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/18/82/d274e924565c2b11eb59fadb5c95885b10502755b4f458bea477a9a6f8af/django_dirtyfields-1.9.9-py3-none-any.whl", hash = "sha256:80da479ab989331e6f29c90576e5f7d7b3df65b36f16bfd6f5d37a0dbdeda6b0", size = 7685, upload-time = "2026-01-22T13:48:57.876Z" },
+]
+
+[[package]]
 name = "django-utils"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "django" },
+    { name = "django-dirtyfields" },
 ]
 
 [package.dev-dependencies]
@@ -58,7 +71,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "django", specifier = ">=5.0" }]
+requires-dist = [
+    { name = "django", specifier = ">=5.0" },
+    { name = "django-dirtyfields", specifier = ">=1.9" },
+]
 
 [package.metadata.requires-dev]
 dev = [

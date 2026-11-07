@@ -7,7 +7,7 @@ license = "BSD-2-Clause"
 license-files = ["LICENSE"]
 authors = [{ name = "Krozark" }]
 requires-python = ">=3.12"
-dependencies = ["django>=5.0"]
+dependencies = ["django>=5.0", "django-dirtyfields>=1.9"]
 classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 5.0",
@@ -30,7 +30,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 lint.select = ["E", "F", "UP", "B", "SIM", "I"]
-lint.ignore = ["SIM108", "UP031", "E722", "SIM115", "SIM102", "SIM110"]
+lint.ignore = ["F403", "SIM108", "UP031", "E722", "SIM115", "SIM102", "SIM110"]
 lint.fixable = ["ALL"]
 target-version = "py312"
 line-length = 120

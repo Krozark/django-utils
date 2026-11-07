@@ -19,6 +19,20 @@ INSTALLED_APPS = [
 
 Compatible with Django 5.0+ and 6.x, Python 3.12+.
 
+## Model mixins
+
+`django_utils.models` provides abstract models and helpers:
+
+| Name | Purpose |
+|---|---|
+| `UUIDMixin` | `uuid` field (not the primary key) |
+| `CreatedByMixin` | `created_by` FK to the user model + `created_at` / `updated_at` |
+| `IsPublicMixin` | `is_public` flag + `manager_public` manager |
+| `VersionFieldMixin` / `AutoVersionFieldMixin` | `version` counter, auto-incremented when a field changes |
+| `StorageSizeMixin` | `storage_size` in bytes, refreshed on each save through `update_size()` |
+| `SoftDeletionMixin` | soft delete with a grace period |
+| `ClassRegistryMixin` | self-registration of concrete subclasses |
+
 ## Development
 
 ```bash
