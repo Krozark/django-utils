@@ -31,6 +31,8 @@ def md5_checksum(file_obj):
 
 def set_m2m(instance, field_name, objects, m2m_mode=M2M_APPEND):
     """Set M2M relation using append or replace mode."""
+    if m2m_mode not in (M2M_APPEND, M2M_REPLACE):
+        raise ValueError(f"Unknown M2M mode {m2m_mode!r}: use M2M_APPEND or M2M_REPLACE.")
     manager = getattr(instance, field_name)
     if m2m_mode == M2M_REPLACE:
         manager.set(objects)

@@ -15,6 +15,7 @@ class FileSizeFieldTests(SimpleTestCase):
             ("500KB", 500 * 1024),
             ("1.5KB", 1536),
             ("42", 42),
+            ("1,5KB", 1536),
         ):
             with self.subTest(value=value):
                 self.assertEqual(self.field.clean(value), expected)

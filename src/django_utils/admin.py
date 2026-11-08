@@ -36,7 +36,11 @@ class _CreatedByFilter(admin.SimpleListFilter):
 
 
 class IsPublicAdminMixin(admin.ModelAdmin):
-    """Admin for ``IsPublicMixin`` models: ``is_public`` is only editable by superusers."""
+    """Admin for ``IsPublicMixin`` models: ``is_public`` is only editable by superusers.
+
+    The admin lists every object, public or not: ``IsPublicMixin`` makes the unfiltered ``objects`` the
+    default manager, which is the one ``ModelAdmin`` uses.
+    """
 
     def get_list_display(self, request):
         return (*super().get_list_display(request), "is_public")
@@ -49,10 +53,6 @@ class IsPublicAdminMixin(admin.ModelAdmin):
         if not request.user.is_superuser:
             return (*exclude, "is_public")
         return exclude
-
-    def get_queryset(self, request):
-        # Use the default ``objects`` manager, which returns all objects (not only the public ones).
-        return self.model.objects.get_queryset()
 
 
 class CreatedByAdminMixin(admin.ModelAdmin):

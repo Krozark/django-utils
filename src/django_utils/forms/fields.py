@@ -47,7 +47,7 @@ class FileSizeField(forms.CharField):
         if not value:
             return 0
 
-        match = self.SIZE_RE.match(value.upper().replace(" ", ""))
+        match = self.SIZE_RE.match(value.upper().replace(" ", "").replace(",", "."))
         if not match:
             raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
 

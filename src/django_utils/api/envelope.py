@@ -54,6 +54,15 @@ def get_error_message(error_data):
     return _("An error occurred")
 
 
+def _join_messages(errors):
+    """Flatten nested DRF errors (lists, dicts, lists of dicts) into a single string."""
+    if isinstance(errors, dict):
+        return " ".join(f"{field}: {_join_messages(value)}" for field, value in errors.items() if value)
+    if isinstance(errors, list | tuple):
+        return " ".join(message for message in map(_join_messages, errors) if message)
+    return str(errors)
+
+
 def format_errors(error_data):
     """Flatten DRF error data into a ``dict[str, str]``, joining all the messages of a field.
 
@@ -67,16 +76,12 @@ def format_errors(error_data):
     if isinstance(error_data, dict):
         formatted_errors = {}
         for field, errors in error_data.items():
-            if isinstance(errors, list):
-                message = " ".join(str(e) for e in errors) if errors else _("Invalid value")
-            else:
-                message = errors
             key = "error" if field in ("detail", "non_field_errors") else field
-            formatted_errors[key] = str(message)
+            formatted_errors[key] = _join_messages(errors) or str(_("Invalid value"))
         return formatted_errors
 
     if isinstance(error_data, list):
-        return {"error": " ".join(str(e) for e in error_data) if error_data else str(_("An error occurred"))}
+        return {"error": _join_messages(error_data) or str(_("An error occurred"))}
 
     return {"error": str(error_data)}
 

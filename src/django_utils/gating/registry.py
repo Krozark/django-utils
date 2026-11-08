@@ -20,6 +20,7 @@ __all__ = [
     "get_gated_features",
     "get_user_gated_features",
     "iter_declared_gated_features",
+    "iter_gated_features_declarations",
     "perm_codename",
 ]
 
@@ -29,11 +30,22 @@ def perm_codename(perm):
     return perm.split(".", 1)[1]
 
 
-def iter_declared_gated_features():
-    """Yield ``(model, perm)`` for every ``gated_features`` entry declared on an installed model."""
+def iter_gated_features_declarations():
+    """Yield ``(model, gated_features)`` for every installed model declaring ``gated_features``."""
     for model in apps.get_models():
-        for perm in getattr(model, "gated_features", ()):
-            yield model, perm
+        if hasattr(model, "gated_features"):
+            yield model, model.gated_features
+
+
+def iter_declared_gated_features():
+    """Yield ``(model, perm)`` for every ``gated_features`` entry declared on an installed model.
+
+    A declaration that is not a list (a lone string for instance) is ignored: the system check reports it.
+    """
+    for model, declaration in iter_gated_features_declarations():
+        if not isinstance(declaration, str):
+            for perm in declaration:
+                yield model, perm
 
 
 def get_declared_permissions():

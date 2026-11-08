@@ -2,12 +2,27 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db import models
 from django.test import SimpleTestCase, TestCase
+from django.test.utils import isolate_apps
 from django.utils import timezone
 
 from django_utils.models import ClassRegistryMixin, PermissionCacheMixin
 
-from .models import OwnedItem, PublicItem, SizedItem, SoftDeletableItem, UUIDItem, VersionedItem
+from .models import (
+    AbstractShape,
+    Animal,
+    Circle,
+    Dog,
+    OwnedItem,
+    PublicItem,
+    SizedItem,
+    SoftDeletableItem,
+    Square,
+    UUIDItem,
+    UUIDVersionedItem,
+    VersionedItem,
+)
 
 
 class AutoVersionFieldMixinTests(TestCase):
@@ -22,6 +37,21 @@ class AutoVersionFieldMixinTests(TestCase):
         self.item.save()
         self.item.refresh_from_db()
         self.assertEqual(self.item.version, 2)
+
+    def test_a_new_object_with_a_known_primary_key_starts_at_one(self):
+        self.assertEqual(UUIDVersionedItem.objects.create(name="a").version, 1)
+
+    def test_save_with_update_fields_persists_the_new_version(self):
+        self.item.name = "b"
+        self.item.save(update_fields=["name"])
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.version, 2)
+
+    def test_changes_outside_update_fields_do_not_increment(self):
+        self.item.name = "b"
+        self.item.save(update_fields=[])
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.version, 1)
 
     def test_unchanged_save_does_not_increment(self):
         self.item.save()
@@ -107,69 +137,31 @@ class UUIDMixinTests(TestCase):
         self.assertNotEqual(UUIDItem.objects.create().uuid, UUIDItem.objects.create().uuid)
 
 
-class _FakeMeta:
-    def __init__(self, abstract):
-        self.abstract = abstract
-
-
-def _make_root():
-    """A minimal, correctly-configured ClassRegistryMixin root."""
-
-    class Root(ClassRegistryMixin):
-        _meta = _FakeMeta(abstract=True)
-        _registry = {}
-
-        @classmethod
-        def get_registry(cls):
-            return cls._registry
-
-        @classmethod
-        def _registry_key(cls):
-            return cls.__name__
-
-    return Root
-
-
 class ClassRegistryMixinTests(SimpleTestCase):
-    """Plain fake ``_meta`` stand-ins are used: the mixin only ever reads ``cls._meta.abstract``."""
+    def test_concrete_subclasses_of_an_abstract_root_register(self):
+        self.assertEqual(AbstractShape.get_registry(), {"Circle": Circle, "Square": Square})
 
-    def test_concrete_subclass_self_registers(self):
-        Root = _make_root()
+    def test_abstract_intermediate_classes_do_not_register(self):
+        self.assertNotIn("AbstractPolygon", AbstractShape.get_registry())
 
-        class Concrete(Root):
-            _meta = _FakeMeta(abstract=False)
+    def test_a_concrete_root_does_not_register_itself(self):
+        self.assertEqual(Animal.get_registry(), {"Dog": Dog})
 
-        self.assertEqual(Root._registry, {"Concrete": Concrete})
+    def test_hierarchies_do_not_share_a_registry(self):
+        self.assertIsNot(AbstractShape.get_registry(), Animal.get_registry())
 
-    def test_abstract_subclass_does_not_register(self):
-        Root = _make_root()
-
-        class StillAbstract(Root):
-            _meta = _FakeMeta(abstract=True)
-
-        self.assertEqual(Root._registry, {})
-
-    def test_two_hierarchies_do_not_share_a_registry(self):
-        RootA = _make_root()
-        RootB = _make_root()
-
-        class ConcreteA(RootA):
-            _meta = _FakeMeta(abstract=False)
-
-        class ConcreteB(RootB):
-            _meta = _FakeMeta(abstract=False)
-
-        self.assertEqual(RootA._registry, {"ConcreteA": ConcreteA})
-        self.assertEqual(RootB._registry, {"ConcreteB": ConcreteB})
-
+    @isolate_apps("tests")
     def test_missing_get_registry_override_raises_immediately(self):
-        class IncompleteRoot(ClassRegistryMixin):
-            _meta = _FakeMeta(abstract=True)
+        class IncompleteRoot(ClassRegistryMixin, models.Model):
+            class Meta:
+                abstract = True
+                app_label = "tests"
 
         with self.assertRaises(NotImplementedError):
 
             class Concrete(IncompleteRoot):
-                _meta = _FakeMeta(abstract=False)
+                class Meta:
+                    app_label = "tests"
 
 
 class PermissionCacheMixinTests(TestCase):

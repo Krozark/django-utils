@@ -14,6 +14,7 @@ from django_utils.utils import (
     set_m2m,
 )
 
+from .helpers import create_user
 from .models import OwnedUUIDItem
 
 
@@ -43,6 +44,12 @@ class SetM2MTests(TestCase):
     def test_replace_overrides_existing(self):
         set_m2m(self.user, "groups", [self.groups[1]], M2M_REPLACE)
         self.assertEqual(list(self.user.groups.all()), [self.groups[1]])
+
+
+class SetM2MModeTests(TestCase):
+    def test_unknown_mode_is_rejected(self):
+        with self.assertRaises(ValueError):
+            set_m2m(create_user(), "groups", [], "replce")
 
 
 class LookupByUUIDTests(TestCase):

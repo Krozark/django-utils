@@ -62,6 +62,17 @@ class FormatErrorsTests(SimpleTestCase):
         self.assertIsNone(format_errors(None))
         self.assertEqual(format_errors({"name": []}), {"name": "Invalid value"})
 
+    def test_nested_errors_are_flattened(self):
+        errors = {
+            "actions": [{"name": ["Required"]}, {}, {"name": ["Too long", "Bad"]}],
+            "meta": {"icon": ["Bad icon"]},
+        }
+
+        self.assertEqual(
+            format_errors(errors),
+            {"actions": "name: Required name: Too long Bad", "meta": "icon: Bad icon"},
+        )
+
     def test_is_idempotent(self):
         errors = format_errors({"name": ["A", "B"], "detail": "C"})
         self.assertEqual(format_errors(errors), errors)

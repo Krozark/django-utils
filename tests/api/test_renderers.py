@@ -1,13 +1,14 @@
 import json
 
 from django.test import TestCase
+from rest_framework import generics
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from django_utils.api.renderers import HTMXRenderer
 
 from ..helpers import create_user
 from ..models import OwnedUUIDItem
-from .viewsets import OwnedUUIDItemViewSet
+from .viewsets import OwnedUUIDItemSerializer, OwnedUUIDItemViewSet
 
 
 class RendererTestCase(TestCase):
@@ -87,3 +88,23 @@ class HTMXRendererTests(RendererTestCase):
         self.assertEqual(
             SiteRenderer().get_template_names(None, view)[0], "site/partials/owneduuiditem_custom_partial.html"
         )
+
+
+class HTMXRendererEdgeCaseTests(RendererTestCase):
+    def test_error_responses_are_rendered_without_fetching_the_object_again(self):
+        response = self.call("retrieve", pk=999999, format="htmx")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response["Content-Type"], "text/htmx; charset=utf-8")
+
+    def test_views_without_action(self):
+        class ListView(generics.ListAPIView):
+            queryset = OwnedUUIDItem.objects.all()
+            serializer_class = OwnedUUIDItemSerializer
+
+        request = self.factory.get("/items/", {"format": "htmx"})
+        force_authenticate(request, self.user)
+        response = ListView.as_view()(request)
+        response.render()
+
+        self.assertEqual(response.status_code, 200)

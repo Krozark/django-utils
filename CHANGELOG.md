@@ -12,3 +12,17 @@ First release candidate. Content:
 - Add `PermissionCacheMixin` and `AbstractSubscriptionPlan`.
 - Add `DryRunCommand` and `CleanupCommand`, `SoftDeletionMixin.get_expired()`, `rsa_keys` (extra `crypto`) and `PrivateStorageFileViewer` (extra `private-storage`).
 - Add the `language_flag` template filter (`django_utils_tags`).
+
+### Fixed during the review
+
+- `ClassRegistryMixin` crashed on abstract roots and could register abstract models: it now registers through
+  `class_prepared` (and ignores the historical models of the migrations).
+- `AutoVersionFieldMixin` bumped the version when an object with a known primary key was created, and lost the
+  bump when saving with `update_fields`.
+- `IsPublicAdminMixin` ignored the other admin mixins' `get_queryset()`: combined with `CreatedByAdminMixin` in
+  this order, users could list the objects of the others.
+- `HTMXRenderer` failed on error responses of `retrieve` and on views without `action`.
+- Nested validation errors are flattened into readable messages (they used to be Python reprs).
+- `gated_features` given as a string is reported by the system check (it used to be read character by character).
+- `FileSizeField` accepts a decimal comma (`1,5GB`); `set_m2m` rejects unknown modes; `__version__` no longer
+  fails when the package is not installed; `ensure_dev_keys` replaces existing key files on every platform.

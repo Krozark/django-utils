@@ -59,7 +59,7 @@ def _export_key_files(export_dir: Path, key_name: str, private_pem: bytes, publi
         os.write(fd, private_pem)
     finally:
         os.close(fd)
-    Path(tmp).rename(private_path)
+    os.replace(tmp, private_path)
     public_path.write_bytes(public_pem)
 
 

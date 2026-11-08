@@ -7,7 +7,7 @@ from django.test import RequestFactory, TestCase
 
 from django_utils.admin import CreatedByAdminMixin, IsPublicAdminMixin, ReadOnlyAdminMixin
 
-from .models import OwnedItem, PublicItem
+from .models import OwnedItem, OwnedPublicItem, PublicItem
 
 
 class OwnedItemAdmin(CreatedByAdminMixin, admin.ModelAdmin):
@@ -113,3 +113,31 @@ class ReadOnlyAdminMixinTests(AdminTestCase):
         self.assertFalse(model_admin.has_add_permission(request))
         self.assertFalse(model_admin.has_change_permission(request))
         self.assertIn("created_by", model_admin.get_readonly_fields(request))
+
+
+class AdminMixinsOrderTests(AdminTestCase):
+    """Combining the mixins must scope the objects to their owner whatever the order of the bases."""
+
+    def test_non_superusers_only_see_their_objects_whatever_the_order(self):
+        class PublicFirst(IsPublicAdminMixin, CreatedByAdminMixin, admin.ModelAdmin):
+            pass
+
+        class OwnerFirst(CreatedByAdminMixin, IsPublicAdminMixin, admin.ModelAdmin):
+            pass
+
+        mine = OwnedPublicItem.objects.create(created_by=self.owner)
+        OwnedPublicItem.objects.create(created_by=self.other, is_public=True)
+
+        for admin_class in (PublicFirst, OwnerFirst):
+            with self.subTest(admin_class=admin_class.__name__):
+                queryset = admin_class(OwnedPublicItem, self.site).get_queryset(self.request(self.owner))
+                self.assertEqual(list(queryset), [mine])
+
+    def test_private_objects_are_listed(self):
+        private = OwnedPublicItem.objects.create(created_by=self.owner, is_public=False)
+
+        class Combined(CreatedByAdminMixin, IsPublicAdminMixin, admin.ModelAdmin):
+            pass
+
+        queryset = Combined(OwnedPublicItem, self.site).get_queryset(self.request(self.owner))
+        self.assertEqual(list(queryset), [private])

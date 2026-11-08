@@ -58,8 +58,14 @@ class HTMXRenderer(TemplateHTMLRenderer):
     def get_template_names(self, response, view):
         model = view.get_queryset().model
         directory = self.partials_path.format(app_label=model._meta.app_label)
-        suffix = self.action_suffixes.get(view.action, view.action)
+        action = self.get_action(view)
+        suffix = self.action_suffixes.get(action, action)
         return [f"{directory}/{model.__name__.lower()}_{suffix}_partial.html", self.default_template_name]
+
+    @staticmethod
+    def get_action(view):
+        """The action of a viewset, or the lower-cased HTTP method for the other views."""
+        return getattr(view, "action", None) or view.request.method.lower()
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         view = renderer_context["view"]
@@ -73,7 +79,7 @@ class HTMXRenderer(TemplateHTMLRenderer):
             "request": request,
             "response": response,
         }
-        if view.action == "retrieve":
+        if self.get_action(view) == "retrieve" and response.status_code < 400:
             context["object"] = view.get_object()
 
         return render_to_string(self.get_template_names(response, view), context, request=request)

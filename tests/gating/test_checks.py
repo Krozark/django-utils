@@ -37,6 +37,16 @@ class GatedFeaturesChecksTests(SimpleTestCase):
         self.assertEqual(self.check(isolated_apps), ["django_utils.E001", "django_utils.E001"])
 
     @isolate_apps("tests", kwarg_name="isolated_apps")
+    def test_a_single_string_instead_of_a_list(self, isolated_apps):
+        class Single(models.Model):
+            gated_features = "tests.add_single"
+
+            class Meta:
+                app_label = "tests"
+
+        self.assertEqual(self.check(isolated_apps), ["django_utils.E001"])
+
+    @isolate_apps("tests", kwarg_name="isolated_apps")
     def test_unknown_permission(self, isolated_apps):
         class Unknown(models.Model):
             gated_features = ["tests.use_it"]

@@ -62,7 +62,7 @@ src/django_utils/
 | `VersionFieldMixin` / `AutoVersionFieldMixin` | `version` counter, auto-incremented when a field changes |
 | `StorageSizeMixin` | `storage_size` in bytes, refreshed on each save through `update_size()` |
 | `SoftDeletionMixin` | soft delete with a grace period; `get_expired()` returns what can be hard-deleted |
-| `ClassRegistryMixin` | self-registration of concrete subclasses |
+| `ClassRegistryMixin` | self-registration of the concrete models inheriting from the class that holds the registry |
 | `PermissionCacheMixin` | for user models: `clear_permission_cache()` after the permissions of a user changed |
 | `AbstractSubscriptionPlan` | abstract plan with `groups` and `user_permissions`; `get_permissions()` feeds an `ExtraPermissionsBackend` (several concrete plan models can coexist) |
 

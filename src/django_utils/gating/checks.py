@@ -2,7 +2,12 @@ import re
 
 from django.core import checks
 
-from .registry import get_declared_permissions, iter_declared_gated_features, perm_codename
+from .registry import (
+    get_declared_permissions,
+    iter_declared_gated_features,
+    iter_gated_features_declarations,
+    perm_codename,
+)
 
 __all__ = [
     "check_gated_features",
@@ -17,6 +22,16 @@ def check_gated_features(app_configs=None, **kwargs):
     errors = []
     declared_permissions = get_declared_permissions()
     perms_by_codename = {}
+
+    for model, declaration in iter_gated_features_declarations():
+        if isinstance(declaration, str):
+            errors.append(
+                checks.Error(
+                    f"{model._meta.label}.gated_features must be a list of permissions, not a string.",
+                    obj=model,
+                    id="django_utils.E001",
+                )
+            )
 
     for model, perm in iter_declared_gated_features():
         label = model._meta.label

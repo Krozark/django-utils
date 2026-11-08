@@ -4,6 +4,8 @@ from datetime import timedelta
 from dirtyfields import DirtyFieldsMixin
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import class_prepared
+from django.dispatch import receiver
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -36,11 +38,16 @@ class AutoVersionFieldMixin(DirtyFieldsMixin, VersionFieldMixin):
         abstract = True
 
     def save(self, *args, **kwargs):
-        if self.pk:
+        if not self._state.adding:
+            update_fields = kwargs.get("update_fields")
             dirty_fields = self.get_dirty_fields(check_relationship=True)
             dirty_fields.pop("version", None)
+            if update_fields is not None:
+                dirty_fields = {name: value for name, value in dirty_fields.items() if name in update_fields}
             if dirty_fields:
                 self.version += 1
+                if update_fields is not None:
+                    kwargs["update_fields"] = {*update_fields, "version"}
 
         super().save(*args, **kwargs)
 
@@ -88,7 +95,7 @@ class CreatedByMixin(models.Model):
     @classmethod
     def get_or_create_for_user(cls, user):
         """Get or create an instance for the given user."""
-        obj, _created = cls.objects.get_or_create(created_by=user)
+        obj, _created = cls._default_manager.get_or_create(created_by=user)
         return obj
 
     def get_created_at_display(self):
@@ -172,19 +179,19 @@ class UUIDMixin(models.Model):
 class ClassRegistryMixin:
     """Self-registers every concrete subclass into a dict keyed by `_registry_key()`.
 
-    Factors out the `__init_subclass__` self-registration pattern: every concrete
-    subclass (as opposed to an abstract intermediate) adds itself to a registry,
-    so a dispatcher can later resolve `some_string -> the right subclass` without
-    a hand-written if/elif chain.
+    Factors out the self-registration pattern: every concrete model (as opposed to an abstract one)
+    inheriting from the class holding the registry adds itself to it, so a dispatcher can later resolve
+    `some_string -> the right subclass` without a hand-written if/elif chain.
 
-    Deliberately provides NO default registry here. Each abstract root that uses
-    this mixin MUST declare its own registry dict and override `get_registry()`
-    to return it — a single dict defined on the mixin itself would be shared by
-    every hierarchy that inherits it, silently merging unrelated registries.
-    Leaving `get_registry()` unimplemented here means a root that forgets to
-    override it fails loudly (`NotImplementedError`) the moment its first
-    concrete subclass is defined, instead of silently sharing another
-    hierarchy's dict.
+    The class overriding `get_registry()` holds the registry. It is either an abstract root or a concrete
+    one; a concrete root is not registered itself, only its subclasses are.
+
+    Deliberately provides NO default registry here. Each root that uses this mixin MUST declare its own
+    registry dict and override `get_registry()` to return it — a single dict defined on the mixin itself
+    would be shared by every hierarchy that inherits it, silently merging unrelated registries. Leaving
+    `get_registry()` unimplemented here means a subclass of a root that forgets to override it fails
+    loudly (`NotImplementedError`) when it is defined, instead of silently sharing another hierarchy's
+    dict.
 
     Usage::
 
@@ -204,20 +211,24 @@ class ClassRegistryMixin:
     """
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if not cls._meta.abstract:
-            cls.get_registry()[cls._registry_key()] = cls
-
-    @classmethod
     def get_registry(cls) -> dict:
-        """Return THIS hierarchy's registry dict. Must be overridden by the abstract root."""
+        """Return THIS hierarchy's registry dict. Must be overridden by the root."""
         raise NotImplementedError
 
     @classmethod
     def _registry_key(cls) -> str:
         """Return the key this concrete subclass registers itself under. Must be overridden."""
         raise NotImplementedError
+
+
+@receiver(class_prepared)
+def _register_class(sender, **kwargs):
+    # Sent for concrete models only (never for abstract ones), once their ``_meta`` is complete.
+    # The historical models rendered by the migrations (module "__fake__") have no methods: ignore them.
+    if sender.__module__ == "__fake__" or not issubclass(sender, ClassRegistryMixin):
+        return
+    if "get_registry" not in vars(sender):
+        sender.get_registry()[sender._registry_key()] = sender
 
 
 class PermissionCacheMixin:
