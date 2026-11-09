@@ -1,6 +1,6 @@
 [project]
 name = "django-utils"
-version = "0.1.0"
+version = "26.11.09"
 description = "Reusable Django utilities (models, mixins, helpers) shared across projects."
 readme = "README.md"
 license = "BSD-2-Clause"
