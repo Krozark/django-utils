@@ -9,11 +9,21 @@ __all__ = [
 ]
 
 
+#: HTTP statuses that must not have a body.
+BODYLESS_STATUS_CODES = frozenset({204, 304})
+
+
 class StandardJSONRenderer(JSONRenderer):
-    """JSON renderer wrapping responses in the standard envelope, unless they already are."""
+    """JSON renderer wrapping responses in the standard envelope, unless they already are.
+
+    Responses that cannot have a body (204, 304) are left empty.
+    """
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         response = renderer_context.get("response") if renderer_context else None
+
+        if response is not None and response.status_code in BODYLESS_STATUS_CODES:
+            return b""
 
         if response is not None and not is_envelope(data):
             if 200 <= response.status_code < 300:

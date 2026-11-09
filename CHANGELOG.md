@@ -26,3 +26,6 @@ First release candidate. Content:
 - `gated_features` given as a string is reported by the system check (it used to be read character by character).
 - `FileSizeField` accepts a decimal comma (`1,5GB`); `set_m2m` rejects unknown modes; `__version__` no longer
   fails when the package is not installed; `ensure_dev_keys` replaces existing key files on every platform.
+- `lookup_by_uuid` returns `(None, False)` for a malformed UUID instead of raising.
+- `StandardJSONRenderer` leaves 204/304 responses empty (they used to carry a JSON body, which HTTP forbids).
+- `CreatedByMixin.get_created_at_display()` is localized (`created_at_display_format`, `"SHORT_DATETIME_FORMAT"` by default).

@@ -64,6 +64,9 @@ class LookupByUUIDTests(TestCase):
     def test_uuid_taken_by_another_user(self):
         self.assertEqual(lookup_by_uuid(OwnedUUIDItem, self.item.uuid, self.other), (None, False))
 
+    def test_malformed_uuid_is_not_found_and_cannot_be_reused(self):
+        self.assertEqual(lookup_by_uuid(OwnedUUIDItem, "not-a-uuid", self.user), (None, False))
+
     def test_unknown_uuid_can_be_reused(self):
         self.assertEqual(lookup_by_uuid(OwnedUUIDItem, uuid.uuid4(), self.user), (None, True))
 

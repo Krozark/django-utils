@@ -8,6 +8,7 @@ from django.db.models.signals import class_prepared
 from django.dispatch import receiver
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 
 __all__ = [
@@ -88,6 +89,9 @@ class CreatedByMixin(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
 
+    #: Format of ``get_created_at_display()``: a Django format name (localized) or a format string.
+    created_at_display_format = "SHORT_DATETIME_FORMAT"
+
     class Meta:
         abstract = True
         ordering = ["-created_at"]
@@ -99,9 +103,9 @@ class CreatedByMixin(models.Model):
         return obj
 
     def get_created_at_display(self):
-        """Return the creation date formatted in the current time zone."""
+        """Return the creation date, in the current time zone and language."""
         created_at = timezone.localtime(self.created_at) if timezone.is_aware(self.created_at) else self.created_at
-        return created_at.strftime("%d/%m/%Y %H:%M")
+        return date_format(created_at, self.created_at_display_format)
 
 
 class SoftDeletionMixin(models.Model):

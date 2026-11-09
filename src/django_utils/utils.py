@@ -1,4 +1,5 @@
 import hashlib
+import uuid
 
 from django.contrib.auth import get_permission_codename
 
@@ -47,8 +48,13 @@ def lookup_by_uuid(model_class, uuid_str, user):
 
     Returns (instance, can_reuse_uuid) where:
     - instance is the existing object if found for this user, else None
-    - can_reuse_uuid is True if the UUID can be used for a new object
+    - can_reuse_uuid is True if the UUID can be used for a new object (it is not for a malformed UUID)
     """
+    try:
+        uuid.UUID(str(uuid_str))
+    except ValueError:
+        return None, False
+
     try:
         return model_class.objects.get(uuid=uuid_str, created_by=user), True
     except model_class.DoesNotExist:

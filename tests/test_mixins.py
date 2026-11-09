@@ -1,11 +1,11 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.db import models
 from django.test import SimpleTestCase, TestCase
 from django.test.utils import isolate_apps
-from django.utils import timezone
+from django.utils import translation
 
 from django_utils.models import ClassRegistryMixin, PermissionCacheMixin
 
@@ -79,12 +79,22 @@ class CreatedByMixinTests(TestCase):
         self.assertEqual(first.pk, second.pk)
         self.assertEqual(first.created_by, self.user)
 
-    def test_created_at_display_uses_local_time(self):
+    def test_created_at_display_uses_the_local_time_and_the_language(self):
         item = OwnedItem.objects.create(created_by=self.user)
+        item.created_at = datetime(2026, 11, 7, 8, 30, tzinfo=UTC)
 
         with self.settings(TIME_ZONE="Asia/Tokyo"):
-            expected = timezone.localtime(item.created_at).strftime("%d/%m/%Y %H:%M")
-            self.assertEqual(item.get_created_at_display(), expected)
+            with translation.override("fr"):
+                self.assertEqual(item.get_created_at_display(), "07/11/2026 17:30")
+            with translation.override("en"):
+                self.assertEqual(item.get_created_at_display(), "11/07/2026 5:30 p.m.")
+
+    def test_created_at_display_format_can_be_customized(self):
+        item = OwnedItem(created_at=datetime(2026, 11, 7, 8, 30, tzinfo=UTC))
+        item.created_at_display_format = "Y-m-d"
+
+        with self.settings(TIME_ZONE="UTC"):
+            self.assertEqual(item.get_created_at_display(), "2026-11-07")
 
 
 class SoftDeletionMixinTests(TestCase):

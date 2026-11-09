@@ -50,6 +50,12 @@ class StandardJSONRendererTests(RendererTestCase):
         self.assertEqual((body["success"], body["data"]), (False, None))
         self.assertEqual(body["errors"], {"error": "No OwnedUUIDItem matches the given query."})
 
+    def test_no_content_responses_have_no_body(self):
+        response = self.call("destroy", "delete", pk=self.item.pk)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.content, b"")
+
     def test_does_not_wrap_twice(self):
         body = json.loads(self.call("retrieve", pk=999999).content)
 
