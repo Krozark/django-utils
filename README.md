@@ -9,8 +9,10 @@ settings, overridable templates), never through imports of the project.
 ## Installation
 
 ```bash
-uv add "django-utils @ git+https://github.com/Krozark/django-utils.git"
+uv add "django-utils @ git+https://github.com/Krozark/django-utils.git@26.11.09"
 ```
+
+Versions are calendar-based (`YY.MM.DD`) and tagged.
 
 Optional features come with extras, for instance
 `uv add "django-utils[drf,crypto] @ git+https://github.com/Krozark/django-utils.git"`:

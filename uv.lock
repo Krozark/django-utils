@@ -235,7 +235,7 @@ wheels = [
 
 [[package]]
 name = "django-utils"
-version = "0.1.0"
+version = "26.11.9"
 source = { editable = "." }
 dependencies = [
     { name = "django" },

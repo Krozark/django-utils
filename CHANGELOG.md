@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 26.11.09 — 2026-11-09
 
-First release candidate. Content:
+First release. Content:
 
 - Initial project skeleton.
 - Add model mixins (`UUIDMixin`, `CreatedByMixin`, `IsPublicMixin`, `AutoVersionFieldMixin`, `StorageSizeMixin`, `SoftDeletionMixin`, `ClassRegistryMixin`).
