@@ -1,6 +1,17 @@
 # CLAUDE.md
 
-`django-utils` is a reusable Django app (import name `django_utils`, `src/` layout, built with `uv_build`).
+`django-utils` is a reusable Django app (import name `django_utils`, `src/` layout, built with `uv_build`),
+supporting Django 5.0 to 6.x and Python 3.12+. See `README.md` for the module overview.
+
+## Design rules
+
+- **Project-agnostic**: no reference to any project, domain or product. Specific behaviour is a hook (method to
+  override, overridable template under `django_utils/`), never an import of the project.
+- **Optional dependencies go in extras** (`drf` for `django_utils.api`, `private-storage`, `crypto`); the core imports only Django and
+  `django-dirtyfields`. Nothing in the core may import `django_utils.api`.
+- **Models are abstract** (mixins, `AbstractSubscriptionPlan`): the lib has no migration and no table.
+- Reverse names of fields in abstract models use `%(app_label)s_%(class)s_...` so that several models can coexist.
+- Tests mirror the package layout (`tests/api`, `tests/gating`, ...) and use the test app models in `tests/models.py`.
 
 ## Code Style
 
@@ -21,7 +32,10 @@ uv run python -m django test --settings=tests.settings
 ## Commands
 
 ```bash
-uv sync
+uv sync --all-extras
 uv run ruff check . && uv run ruff format .
 uv build
 ```
+
+Check a change against the supported Django versions with `uv pip install "django~=5.0.0"` (then `5.2`, `6.1`)
+and `uv run --no-sync python -m django test --settings=tests.settings`, then `uv sync --all-extras` to restore.

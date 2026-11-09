@@ -1,0 +1,21 @@
+{% load i18n %}
+<h3>{% blocktrans with filter_title=title %}By {{ filter_title }}{% endblocktrans %}</h3>
+<ul>
+  <li>
+    {% with choices.0 as all_choice %}
+    <form method="get" style="padding: 2px 0;">
+      {% for k, v in all_choice.query_parts %}
+        <input type="hidden" name="{{ k }}" value="{{ v }}" />
+      {% endfor %}
+      <input
+        type="search"
+        name="{{ spec.parameter_name }}"
+        value="{{ spec.value|default_if_none:'' }}"
+        placeholder="{% trans 'Search…' %}"
+        style="width: 100%; box-sizing: border-box; padding: 4px 6px; margin-bottom: 4px;"
+      />
+      <input type="submit" value="{% trans 'Apply' %}" style="width: 100%;" />
+    </form>
+    {% endwith %}
+  </li>
+</ul>

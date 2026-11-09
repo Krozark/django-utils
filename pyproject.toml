@@ -3,16 +3,27 @@ name = "django-utils"
 version = "0.1.0"
 description = "Reusable Django utilities (models, mixins, helpers) shared across projects."
 readme = "README.md"
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
 authors = [{ name = "Krozark" }]
 requires-python = ">=3.12"
-dependencies = ["django>=5.2"]
+dependencies = ["django>=5.0", "django-dirtyfields>=1.9"]
 classifiers = [
     "Framework :: Django",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
+
+[project.optional-dependencies]
+drf = ["djangorestframework>=3.15", "django-filter>=24.1"]
+private-storage = ["djangorestframework>=3.15", "django-private-storage>=3.1"]
+crypto = ["cryptography>=42", "django-environ>=0.11"]
 
 [dependency-groups]
 dev = ["pre-commit", "ruff"]
@@ -23,7 +34,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 lint.select = ["E", "F", "UP", "B", "SIM", "I"]
-lint.ignore = ["SIM108", "UP031", "E722", "SIM115", "SIM102", "SIM110"]
+lint.ignore = ["F403", "SIM108", "UP031", "E722", "SIM115", "SIM102", "SIM110"]
 lint.fixable = ["ALL"]
 target-version = "py312"
 line-length = 120
