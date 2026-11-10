@@ -165,11 +165,9 @@ class StorageSizeMixin(models.Model):
 
     def save(self, *args, **kwargs):
         self.update_size()
-        if "update_fields" in kwargs:
-            update_fields = list(kwargs["update_fields"])
-            if "storage_size" not in update_fields:
-                update_fields.append("storage_size")
-            kwargs["update_fields"] = update_fields
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            kwargs["update_fields"] = {*update_fields, "storage_size"}
         super().save(*args, **kwargs)
 
 
