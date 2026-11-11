@@ -185,42 +185,43 @@ class ClassRegistryMixin:
     inheriting from the class holding the registry adds itself to it, so a dispatcher can later resolve
     `some_string -> the right subclass` without a hand-written if/elif chain.
 
-    The class overriding `get_registry()` holds the registry. It is either an abstract root or a concrete
-    one; a concrete root is not registered itself, only its subclasses are.
-
-    Deliberately provides NO default registry here. Each root that uses this mixin MUST declare its own
-    registry dict and override `get_registry()` to return it — a single dict defined on the mixin itself
-    would be shared by every hierarchy that inherits it, silently merging unrelated registries. Leaving
-    `get_registry()` unimplemented here means a subclass of a root that forgets to override it fails
-    loudly (`NotImplementedError`) when it is defined, instead of silently sharing another hierarchy's
-    dict.
+    The class inheriting directly from this mixin is the root of a hierarchy and gets its own registry,
+    created automatically: hierarchies never share a dict. The root is either abstract or concrete; a concrete
+    root is not registered itself, only its subclasses are.
 
     Usage::
 
         class Shape(ClassRegistryMixin, models.Model):
-            _class_registry: dict = {}
 
             class Meta:
                 abstract = True
 
             @classmethod
-            def get_registry(cls) -> dict:
-                return cls._class_registry
-
-            @classmethod
             def _registry_key(cls) -> str:
-                return cls.__name__
+                return cls.__name__  # default, override to register under another key
     """
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if ClassRegistryMixin in cls.__bases__:
+            cls._class_registry = {}
 
     @classmethod
     def get_registry(cls) -> dict:
-        """Return THIS hierarchy's registry dict. Must be overridden by the root."""
-        raise NotImplementedError
+        """Return THIS hierarchy's registry dict."""
+        if not hasattr(cls, "_class_registry"):
+            raise TypeError(f"{cls.__name__} is not part of a registry hierarchy.")
+        return cls._class_registry
 
     @classmethod
     def _registry_key(cls) -> str:
-        """Return the key this concrete subclass registers itself under. Must be overridden."""
-        raise NotImplementedError
+        """Return the key this concrete subclass registers itself under."""
+        return cls.__name__
+
+    @classmethod
+    def _register(cls) -> None:
+        """Add this concrete subclass to its hierarchy's registry."""
+        cls.get_registry()[cls._registry_key()] = cls
 
 
 @receiver(class_prepared)
@@ -229,8 +230,8 @@ def _register_class(sender, **kwargs):
     # The historical models rendered by the migrations (module "__fake__") have no methods: ignore them.
     if sender.__module__ == "__fake__" or not issubclass(sender, ClassRegistryMixin):
         return
-    if "get_registry" not in vars(sender):
-        sender.get_registry()[sender._registry_key()] = sender
+    if "_class_registry" not in vars(sender):  # a root does not register itself
+        sender._register()
 
 
 class PermissionCacheMixin:

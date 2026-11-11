@@ -134,7 +134,7 @@ class Ambience(models.Model):
   in `INSTALLED_APPS`: Django uses the first template found.
 - **Hooks**: `ExtraPermissionsBackend.get_extra_permissions()`, `HTMXRenderer.partials_path` /
   `action_suffixes`, `GatedFieldsSerializerMixin.gated_fields`, `StorageSizeMixin.update_size()`,
-  `ClassRegistryMixin.get_registry()`.
+  `ClassRegistryMixin._registry_key()`.
 - **System checks** `django_utils.E001` to `E003` validate the `gated_features` of your models.
 
 ## Development

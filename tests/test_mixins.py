@@ -167,18 +167,26 @@ class ClassRegistryMixinTests(SimpleTestCase):
     def test_hierarchies_do_not_share_a_registry(self):
         self.assertIsNot(AbstractShape.get_registry(), Animal.get_registry())
 
+    def test_the_mixin_itself_has_no_registry(self):
+        with self.assertRaises(TypeError):
+            ClassRegistryMixin.get_registry()
+
     @isolate_apps("tests")
-    def test_missing_get_registry_override_raises_immediately(self):
-        class IncompleteRoot(ClassRegistryMixin, models.Model):
+    def test_registry_key_can_be_overridden(self):
+        class Root(ClassRegistryMixin, models.Model):
             class Meta:
                 abstract = True
                 app_label = "tests"
 
-        with self.assertRaises(NotImplementedError):
+            @classmethod
+            def _registry_key(cls):
+                return cls.__name__.lower()
 
-            class Concrete(IncompleteRoot):
-                class Meta:
-                    app_label = "tests"
+        class Leaf(Root):
+            class Meta:
+                app_label = "tests"
+
+        self.assertEqual(Root.get_registry(), {"leaf": Leaf})
 
 
 class PermissionCacheMixinTests(TestCase):

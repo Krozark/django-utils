@@ -87,18 +87,8 @@ class UUIDVersionedItem(AutoVersionFieldMixin):
 class AbstractShape(ClassRegistryMixin, models.Model):
     """Abstract registry root."""
 
-    _class_registry = {}
-
     class Meta:
         abstract = True
-
-    @classmethod
-    def get_registry(cls):
-        return cls._class_registry
-
-    @classmethod
-    def _registry_key(cls):
-        return cls.__name__
 
 
 class AbstractPolygon(AbstractShape):
@@ -116,16 +106,6 @@ class Square(AbstractPolygon):
 
 class Animal(ClassRegistryMixin, models.Model):
     """Concrete registry root: only its subclasses are registered."""
-
-    _class_registry = {}
-
-    @classmethod
-    def get_registry(cls):
-        return cls._class_registry
-
-    @classmethod
-    def _registry_key(cls):
-        return cls.__name__
 
 
 class Dog(Animal):
