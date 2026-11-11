@@ -138,6 +138,13 @@ class StorageSizeMixinTests(TestCase):
         item.refresh_from_db()
         self.assertEqual(item.storage_size, 11)
 
+    def test_update_fields_none_saves_every_field(self):
+        item = SizedItem.objects.create(content="hello")
+        item.content = "hello world"
+        item.save(update_fields=None)
+        item.refresh_from_db()
+        self.assertEqual((item.content, item.storage_size), ("hello world", 11))
+
     def test_human_readable_size(self):
         self.assertEqual(SizedItem(storage_size=2048).get_storage_size(), "2.0\xa0KB")
 

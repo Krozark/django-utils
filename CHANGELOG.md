@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
+  like `AutoVersionFieldMixin` does.
+
 ## 26.11.09 — 2026-11-09
 
 First release. Content:
