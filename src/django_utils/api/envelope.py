@@ -77,7 +77,9 @@ def format_errors(error_data):
         formatted_errors = {}
         for field, errors in error_data.items():
             key = "error" if field in ("detail", "non_field_errors") else field
-            formatted_errors[key] = _join_messages(errors) or str(_("Invalid value"))
+            message = _join_messages(errors) or str(_("Invalid value"))
+            # "detail" and "non_field_errors" share the "error" key: keep both messages.
+            formatted_errors[key] = f"{formatted_errors[key]} {message}" if key in formatted_errors else message
         return formatted_errors
 
     if isinstance(error_data, list):

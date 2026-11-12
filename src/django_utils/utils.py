@@ -2,11 +2,13 @@ import hashlib
 import uuid
 
 from django.contrib.auth import get_permission_codename
+from django.utils.http import url_has_allowed_host_and_scheme
 
 __all__ = [
     "M2M_APPEND",
     "M2M_REPLACE",
     "get_model_permission",
+    "is_safe_redirect_url",
     "lookup_by_uuid",
     "md5_checksum",
     "set_m2m",
@@ -69,3 +71,11 @@ def get_model_permission(model, action):
     """
     opts = model._meta
     return f"{opts.app_label}.{get_permission_codename(action, opts)}"
+
+
+def is_safe_redirect_url(request, url):
+    """Whether a user-supplied redirect target (``?next=``) stays on the site of ``request``.
+
+    A prefix check is not enough: browsers read ``/\\host`` as ``//host``.
+    """
+    return url_has_allowed_host_and_scheme(url, allowed_hosts={request.get_host()}, require_https=request.is_secure())

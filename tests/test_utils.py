@@ -3,12 +3,13 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from django_utils.utils import (
     M2M_APPEND,
     M2M_REPLACE,
     get_model_permission,
+    is_safe_redirect_url,
     lookup_by_uuid,
     md5_checksum,
     set_m2m,
@@ -75,3 +76,18 @@ class GetModelPermissionTests(TestCase):
     def test_permission_string(self):
         self.assertEqual(get_model_permission(OwnedUUIDItem, "add"), "tests.add_owneduuiditem")
         self.assertEqual(get_model_permission(OwnedUUIDItem, "change"), "tests.change_owneduuiditem")
+
+
+class IsSafeRedirectUrlTests(SimpleTestCase):
+    def setUp(self):
+        self.request = RequestFactory().get("/")
+
+    def test_local_urls_are_safe(self):
+        for url in ("/shop/", "/shop/?page=2", "http://testserver/shop/"):
+            with self.subTest(url=url):
+                self.assertTrue(is_safe_redirect_url(self.request, url))
+
+    def test_urls_leaving_the_site_are_not(self):
+        for url in ("", "https://evil.example/", "//evil.example/", "/\\evil.example/", "javascript:alert(1)"):
+            with self.subTest(url=url):
+                self.assertFalse(is_safe_redirect_url(self.request, url))

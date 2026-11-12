@@ -4,6 +4,10 @@
 
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
+- Add `is_safe_redirect_url(request, url)`: whether a `?next=` target stays on the site.
+- `format_errors` kept only one message when the error data had both `detail` and `non_field_errors`.
+- `HTMXRenderer` crashed on an error response when the view could not build its queryset (anonymous request on a
+  queryset filtered on the user): it falls back to the default partial.
 
 ## 26.11.09 — 2026-11-09
 
