@@ -4,11 +4,11 @@ from pathlib import Path
 from unittest import mock
 
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import storages
+from django.core.files.storage import FileSystemStorage, storages
 from django.test import SimpleTestCase, override_settings
-from django_utils.testing.mixins import FrozenTimeMixin, MediaCleanupMixin
 
 from django_utils.testing import mixins
+from django_utils.testing.mixins import FrozenTimeMixin, MediaCleanupMixin
 
 
 def run_class_lifecycle(case_class):
@@ -17,6 +17,7 @@ def run_class_lifecycle(case_class):
         yield
     finally:
         case_class.tearDownClass()
+        case_class.doClassCleanups()
 
 
 class FrozenTimeMixinTests(SimpleTestCase):
@@ -71,7 +72,7 @@ class MediaCleanupMixinTests(SimpleTestCase):
             self.assertFalse(Path(self.root).exists())
 
             Path(self.root).mkdir()
-            Media.tearDownClass()
+            Media.doClassCleanups()
             self.assertFalse(Path(self.root).exists())
             Path(self.root).mkdir()
 
@@ -82,9 +83,9 @@ class MediaCleanupMixinTests(SimpleTestCase):
         with override_settings(
             STORAGES={"default": {"BACKEND": "django.core.files.storage.InMemoryStorage"}},
         ):
-            self.assertFalse(hasattr(storages["default"], "location"))
+            self.assertNotIsInstance(storages["default"], FileSystemStorage)
             Media.setUpClass()
-            Media.tearDownClass()
+            Media.doClassCleanups()
 
     def test_refuses_to_clear_outside_temporary_directory(self):
         class Media(MediaCleanupMixin, SimpleTestCase):
@@ -107,4 +108,4 @@ class MediaCleanupMixinTests(SimpleTestCase):
             Media.setUpClass()
             self.assertFalse(Path(other).exists())
             self.assertTrue(Path(self.root).exists())
-            Media.tearDownClass()
+            Media.doClassCleanups()

@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 from django.test import SimpleTestCase, TestCase
-from django_utils.testing.transactions import rollback_atomic
 
+from django_utils.testing.transactions import rollback_atomic
 from tests.models import VersionedItem
 
 
