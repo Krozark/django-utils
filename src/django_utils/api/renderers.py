@@ -66,7 +66,14 @@ class HTMXRenderer(TemplateHTMLRenderer):
     default_template_name = "django_utils/htmx/default_partial.html"
 
     def get_template_names(self, response, view):
-        model = view.get_queryset().model
+        try:
+            model = view.get_queryset().model
+        except Exception:
+            # An error response may come before the view can build its queryset (e.g. a queryset filtered
+            # on the user, for an anonymous request refused with a 401): render it with the default partial.
+            if response is None or response.status_code < 400:
+                raise
+            return [self.default_template_name]
         directory = self.partials_path.format(app_label=model._meta.app_label)
         action = self.get_action(view)
         suffix = self.action_suffixes.get(action, action)

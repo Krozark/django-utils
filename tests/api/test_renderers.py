@@ -2,6 +2,8 @@ import json
 
 from django.test import TestCase
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from django_utils.api.renderers import HTMXRenderer
@@ -102,6 +104,32 @@ class HTMXRendererEdgeCaseTests(RendererTestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response["Content-Type"], "text/htmx; charset=utf-8")
+
+    def test_error_responses_of_a_view_that_cannot_build_its_queryset(self):
+        """E.g. a queryset filtered on the user, for an anonymous request refused before reaching the view."""
+
+        class OwnItemsView(generics.ListAPIView):
+            serializer_class = OwnedUUIDItemSerializer
+            permission_classes = [IsAuthenticated]
+
+            def get_queryset(self):
+                return OwnedUUIDItem.objects.filter(created_by=self.request.user)
+
+        response = OwnItemsView.as_view()(self.factory.get("/items/", {"format": "htmx"}))
+        response.render()
+
+        self.assertIn(response.status_code, (401, 403))
+        self.assertEqual(response["Content-Type"], "text/htmx; charset=utf-8")
+
+    def test_a_failing_queryset_is_not_hidden_on_a_successful_response(self):
+        class BrokenView(generics.ListAPIView):
+            serializer_class = OwnedUUIDItemSerializer
+
+            def get_queryset(self):
+                raise RuntimeError("broken")
+
+        with self.assertRaises(RuntimeError):
+            HTMXRenderer().get_template_names(Response(status=200), BrokenView())
 
     def test_views_without_action(self):
         class ListView(generics.ListAPIView):

@@ -74,7 +74,7 @@ src/django_utils/
   `IsPublicAdminMixin`, `ReadOnlyAdminMixin`. The username filter uses a template shipped with the app, so
   `django_utils` must be in `INSTALLED_APPS`.
 - `django_utils.forms.FileSizeField` (`forms/fields.py`): accepts `100MB`, `1 GB`... and cleans to bytes.
-- `django_utils.utils`: `md5_checksum`, `set_m2m`, `lookup_by_uuid`, `get_model_permission`.
+- `django_utils.utils`: `md5_checksum`, `set_m2m`, `lookup_by_uuid`, `get_model_permission`, `is_safe_redirect_url`.
 - `django_utils.management.base`: `DryRunCommand` (a `--dry-run` option, `self.dry_run`) and `CleanupCommand`
   (deletes the objects of `get_queryset()`, with `--dry-run` and a report).
 - `django_utils.rsa_keys` (extra `crypto`): `load_rsa_key_pair()` reads a PEM key pair from environment variables;

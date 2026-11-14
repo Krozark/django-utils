@@ -53,6 +53,7 @@ class FormatErrorsTests(SimpleTestCase):
     def test_non_field_errors_use_the_error_key(self):
         self.assertEqual(format_errors({"detail": "Nope"}), {"error": "Nope"})
         self.assertEqual(format_errors({"non_field_errors": ["A", "B"]}), {"error": "A B"})
+        self.assertEqual(format_errors({"detail": "Nope", "non_field_errors": ["A"]}), {"error": "Nope A"})
 
     def test_lists_and_strings(self):
         self.assertEqual(format_errors(["A", "B"]), {"error": "A B"})
