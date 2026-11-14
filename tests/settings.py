@@ -46,3 +46,11 @@ REST_FRAMEWORK = {
 
 PRIVATE_STORAGE_ROOT = tempfile.mkdtemp(prefix="django-utils-private-")
 PRIVATE_STORAGE_AUTH_FUNCTION = "private_storage.permissions.allow_authenticated"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {"location": tempfile.mkdtemp(prefix="django-utils-media-")},
+    },
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}

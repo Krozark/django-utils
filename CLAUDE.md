@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 `django-utils` is a reusable Django app (import name `django_utils`, `src/` layout, built with `uv_build`),
-supporting Django 5.0 to 6.x and Python 3.12+. See `README.md` for the module overview.
+supporting Django 5.2 to 6.x and Python 3.12+. See `README.md` for the module overview.
 
 ## Design rules
 
@@ -37,5 +37,5 @@ uv run ruff check . && uv run ruff format .
 uv build
 ```
 
-Check a change against the supported Django versions with `uv pip install "django~=5.0.0"` (then `5.2`, `6.1`)
+Check a change against the supported Django versions with `uv pip install "django~=5.2.0"` (then `6.0`, `6.1`)
 and `uv run --no-sync python -m django test --settings=tests.settings`, then `uv sync --all-extras` to restore.
