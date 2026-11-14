@@ -213,11 +213,11 @@ from django_utils.testing import (
 
 class ContractItemContract(ModelContractTestCase):
     model = ContractItem
-    factory = ContractItemFactory          # builds, without saving, the instance used below
+    factory = ContractItemFactory  # builds, without saving, the instance used below
     build_kwargs = {"slug": "abc", "title": "Hello"}
 
     expected_repr = "<ContractItem: Hello>"
-    expected_natural_key = ("abc",)        # None: the model must not define natural_key
+    expected_natural_key = ("abc",)  # None: the model must not define natural_key
     expected_verbose_names = {"en": ("contract item", "contract items")}
     expected_fields = {
         "id": models.BigAutoField,
@@ -255,9 +255,9 @@ class NotEqualContract(LookupContractTestCase):
     lookup_field_name = "tag"
     expected_lookup_name = "ne"
     expected_querysets = [
-        {"value": "a", "instances": [1, 2]},                       # indexes in self.instances
+        {"value": "a", "instances": [1, 2]},  # indexes in self.instances
         {"value": "zzz", "instances": [0, 1, 2]},
-        {"value": UnprintableValue(), "raises": TypeError},        # the filter must raise
+        {"value": UnprintableValue(), "raises": TypeError},  # the filter must raise
     ]
 
     def create_fixtures(self):
@@ -267,7 +267,7 @@ class NotEqualContract(LookupContractTestCase):
 class ContractItemManagerContract(ManagerContractTestCase):
     model = ContractItem
     expected_manager_class = ContractItemManager
-    expected_natural_keys = [              # None: no get_by_natural_key expected
+    expected_natural_keys = [  # None: no get_by_natural_key expected
         {"key": ("does-not-exist",), "instance": None},
         {"key": ("first",), "instance": 0},
         {"key": ("second",), "instance": 1},
@@ -293,9 +293,9 @@ from django_utils.testing.api import FilterSetContractTestCase, SerializerContra
 
 class ContractItemSerializerContract(SerializerContractTestCase):
     serializer_class = ContractItemSerializer
-    users = {"admin": lambda: UserFactory(is_staff=True)}       # callables are resolved once per class
+    users = {"admin": lambda: UserFactory(is_staff=True)}  # callables are resolved once per class
 
-    expected_fields = {                                          # exact classes
+    expected_fields = {  # exact classes
         "id": serializers.BigIntegerField,
         "slug": serializers.SlugField,
         "title": serializers.CharField,
@@ -429,17 +429,19 @@ from django_utils.testing import TestCase, subtests_cases, with_fixtures
 
 
 class PricingTests(TestCase):
-    frozen_time = "2012-01-14 03:21:34"        # needs the testing extra (freezegun)
+    frozen_time = "2012-01-14 03:21:34"  # needs the testing extra (freezegun)
 
-    @subtests_cases({
-        "valid": [5, 10],                                              # data passed as the second argument
-        "negative": {"data": [-1, 10], "raises": ValueError, "message": "negative"},
-    })
-    def test_discount(self, data):                                    # each case: sub-test + rolled-back transaction
+    @subtests_cases(
+        {
+            "valid": [5, 10],  # data passed as the second argument
+            "negative": {"data": [-1, 10], "raises": ValueError, "message": "negative"},
+        }
+    )
+    def test_discount(self, data):  # each case: sub-test + rolled-back transaction
         amount, total = data
         apply_discount(amount, total)
 
-    def fixtures_total(self):                                          # called before test_total
+    def fixtures_total(self):  # called before test_total
         self.order = OrderFactory()
 
     @with_fixtures()
