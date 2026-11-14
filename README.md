@@ -22,6 +22,7 @@ Optional features come with extras, for instance
 | `drf` | the REST framework helpers (`django_utils.api`) |
 | `private-storage` | `django_utils.api.private_storage` (also needs DRF) |
 | `crypto` | `django_utils.rsa_keys` |
+| `testing` | `django_utils.testing` (factory-boy and freezegun; its `api` part also needs `drf`) |
 
 Then add it to `INSTALLED_APPS`:
 
@@ -48,8 +49,10 @@ src/django_utils/
 ├── gating/          # registry, system checks, ExtraPermissionsBackend
 ├── templatetags/    # django_utils_gating ({% gated_block %}), django_utils_tags (language_flag)
 ├── templates/       # default templates, all under django_utils/
-└── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
-                     # pagination, filters, views, private_storage
+├── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
+│                    # pagination, filters, views, private_storage
+└── testing/         # (extra "testing") test cases, sub-test helpers and "contract" test cases;
+                     # testing/api needs the "drf" extra too
 ```
 
 ## Model mixins
@@ -105,6 +108,74 @@ REST_FRAMEWORK = {
 
 `HTMXRenderer` looks for `<app_label>/partials/<model>_<list|detail|form|action>_partial.html` and falls back to
 `django_utils/htmx/default_partial.html`. Subclass it to change `partials_path`.
+
+## Testing (`django_utils.testing`, extra `testing`)
+
+A small framework to test Django code by *contract*: you declare what a model, field, manager, serializer,
+filterset or viewset is expected to look like, and generic tests check it. Anything that exists but was not declared
+fails too, so a contract has to be updated whenever the code changes.
+
+```python
+from django.db import models
+from django_utils.testing import ModelContractTestCase
+
+
+class ArticleContract(ModelContractTestCase):
+    model = Article
+    factory = ArticleFactory  # factory-boy, used to build (not save) the instance
+    build_kwargs = {"title": "Hello"}
+
+    expected_repr = "<Article: Hello>"
+    expected_natural_key = None  # the model must not define natural_key
+    expected_verbose_names = {"en": ("article", "articles")}
+    expected_fields = {"id": models.BigAutoField, "title": models.CharField}
+    expected_properties = {"upper_title": {"getter_method": "get_upper_title"}}
+```
+
+Base classes imported in a test module are skipped, while a class forgetting a required attribute fails.
+
+| Module | Content |
+|---|---|
+| `testing` | `TestCase` and `SimpleTestCase` (frozen time, media cleanup, DRF client, lazy `users`), the mixins `FrozenTimeMixin` and `MediaCleanupMixin`, `subtests_cases`, `with_fixtures`, `rollback_atomic` |
+| `testing` (contracts) | `ModelContractTestCase`, `FieldContractTestCase`, `LookupContractTestCase`, `ManagerContractTestCase` |
+| `testing.api` (extra `drf`) | `RequestBuilderMixin`, `SerializerContractTestCase`, `FilterSetContractTestCase`, `ViewSetContractTestCase` |
+
+- `TestCase.users` maps a key to `None` (anonymous), an instance, or a callable creating the user (typically a
+  factory-boy call), resolved once per class: `users = {"anonymous": None, "admin": lambda: UserFactory(is_staff=True)}`.
+- `FrozenTimeMixin`: set `frozen_time = "2012-01-14 03:21:34"` to freeze the clock for the class.
+- `MediaCleanupMixin`: empties the filesystem storages of `storages_to_clear` (default `("default",)`) before and
+  after the class and after each test. It refuses to touch a directory outside the system temporary directory, so
+  point the storages to a temporary location in your test settings.
+- `subtests_cases` runs a test once per case, each in its own sub-test and rolled-back transaction. A case is a
+  list/tuple or `{"data": ..., "raises": ValueError, "message": "..."}`.
+- `with_fixtures` calls `fixtures_<name>()` before `test_<name>()`. The contract test cases use it with a single
+  hook, `create_fixtures()`, which fills `self.instances` (and may create the objects of `users`).
+
+Expectations are plain dicts, for instance for a viewset (`ROOT_URLCONF` must route it):
+
+```python
+@override_settings(ROOT_URLCONF="myproject.urls")
+class ArticleViewSetContract(ViewSetContractTestCase):
+    viewset_class = ArticleViewSet
+    url_basename = "article"
+    action_url_kwargs = {"retrieve": {"pk": 1}}
+    users = {"anonymous": None, "admin": lambda: UserFactory(is_staff=True)}
+
+    expected_actions = ["list", "retrieve"]
+    expected_permissions = [
+        {"action": "list", "user": "anonymous", "allowed": False},
+        {"action": "list", "user": "admin", "allowed": True},
+        ...,
+    ]
+    expected_querysets = [{"user": "admin", "instances": [0, 1]}]
+    expected_query_counts = [{"action": "list", "user": "admin", "query_params": {"page": "1"}, "count": 2}]
+
+    def create_fixtures(self):
+        self.instances = [ArticleFactory(pk=1), ArticleFactory(pk=2)]
+```
+
+With `strict_coverage = True` (the default) the viewset contract also fails when an action x user permission, an
+action filterset, a user queryset or the query count of a safe action is not declared.
 
 ## Gated features (`django_utils.gating`)
 
