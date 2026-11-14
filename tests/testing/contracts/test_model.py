@@ -1,5 +1,5 @@
 from django.db import models
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 from django_utils.testing import ModelContractTestCase
 from tests.models import ContractItem
@@ -33,7 +33,7 @@ class ContractItemContract(ModelContractTestCase):
         pass
 
 
-class ContractViolationTests(SimpleTestCase):
+class ContractViolationTests(TestCase):
     """Each variation must make the matching generated test fail."""
 
     def failures(self, **overrides):
@@ -94,7 +94,7 @@ class ContractViolationTests(SimpleTestCase):
         self.assertEqual(self.failures(expected_properties=props), set())
 
 
-class AbstractContractTests(SimpleTestCase):
+class AbstractContractTests(TestCase):
     def test_library_base_class_is_skipped(self):
         result = run_contract(ModelContractTestCase)
         self.assertEqual(result.testsRun, 0)

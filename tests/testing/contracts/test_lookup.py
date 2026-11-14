@@ -1,9 +1,14 @@
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 from django_utils.testing import LookupContractTestCase
 from tests.models import NotEqual, TaggedItem
 from tests.testing.factories import TaggedItemFactory
 from tests.testing.helpers import failed_test_names, run_contract
+
+
+class UnprintableValue:
+    def __str__(self):
+        raise TypeError("cannot be converted")
 
 
 class NotEqualContract(LookupContractTestCase):
@@ -15,14 +20,14 @@ class NotEqualContract(LookupContractTestCase):
         {"value": "a", "instances": [1, 2]},
         {"value": "zzz", "instances": [0, 1, 2]},
         {"value": "a", "instances": [1, 2], "ordered": False},
-        {"value": object(), "raises": TypeError},
+        {"value": UnprintableValue(), "raises": TypeError},
     ]
 
     def fixtures_expected_querysets(self):
         self.instances = [TaggedItemFactory(tag=tag) for tag in ("a", "b", "c")]
 
 
-class LookupContractViolationTests(SimpleTestCase):
+class LookupContractViolationTests(TestCase):
     def failures(self, **overrides):
         case = type("Variation", (NotEqualContract,), overrides)
         return failed_test_names(run_contract(case))
@@ -31,7 +36,7 @@ class LookupContractViolationTests(SimpleTestCase):
         self.assertEqual(self.failures(), set())
 
     def test_wrong_lookup_name(self):
-        self.assertEqual(self.failures(expected_lookup_name="other"), {"test_lookup_name"})
+        self.assertEqual(self.failures(expected_lookup_name="other"), {"test_lookup_name", "test_expected_querysets"})
 
     def test_wrong_queryset(self):
         self.assertEqual(

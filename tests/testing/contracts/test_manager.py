@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 from django_utils.testing import ManagerContractTestCase
 from tests.models import ContractItem, ContractItemManager
@@ -24,7 +24,7 @@ class ContractItemManagerContract(ManagerContractTestCase):
         self.instances = [ContractItemFactory(slug="first"), ContractItemFactory(slug="second")]
 
 
-class ManagerContractViolationTests(SimpleTestCase):
+class ManagerContractViolationTests(TestCase):
     def failures(self, **overrides):
         case = type("Variation", (ContractItemManagerContract,), overrides)
         return failed_test_names(run_contract(case))
