@@ -1,6 +1,5 @@
 import uuid
 
-import django
 from django.core.files.storage import InMemoryStorage
 from django.db import models
 from django.db.models import Lookup
@@ -130,12 +129,6 @@ class ContractItemManager(models.Manager.from_queryset(ContractItemQuerySet)):
         return self.get(slug=slug)
 
 
-def check_constraint(condition, name):
-    """``CheckConstraint`` renamed its ``check`` argument to ``condition`` in Django 5.1."""
-    key = "condition" if django.VERSION >= (5, 1) else "check"
-    return models.CheckConstraint(**{key: condition, "name": name})
-
-
 class ContractItem(models.Model):
     """Model exercising every aspect checked by the model/manager contract test cases."""
 
@@ -148,7 +141,9 @@ class ContractItem(models.Model):
     class Meta:
         verbose_name = _("contract item")
         verbose_name_plural = _("contract items")
-        constraints = [check_constraint(models.Q(slug__gt=""), "tests__contractitem__slug_not_empty")]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(slug__gt=""), name="tests__contractitem__slug_not_empty")
+        ]
 
     def __str__(self):
         return self.title

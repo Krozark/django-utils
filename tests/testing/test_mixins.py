@@ -1,35 +1,14 @@
 import tempfile
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage, storages
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from django_utils.testing import mixins
 from django_utils.testing.mixins import FrozenTimeMixin, MediaCleanupMixin
-
-
-@contextmanager
-def override_storages(storages_settings):
-    """Use ``storages_settings`` as the storages configuration.
-
-    ``override_settings(STORAGES=...)`` is not enough before Django 5.1: the cache of ``storages`` is not
-    reset and the ``OPTIONS`` of the backends are lost.
-    """
-
-    def configure(backends):
-        storages.__dict__.pop("backends", None)
-        storages._backends = backends
-        storages._storages = {}
-
-    configure(storages_settings)
-    try:
-        yield
-    finally:
-        configure(None)
 
 
 def run_class_lifecycle(case_class):
@@ -81,7 +60,7 @@ class MediaCleanupMixinTests(SimpleTestCase):
             def test_nothing(self):
                 pass
 
-        with override_storages(self.storages_settings(self.root)):
+        with override_settings(STORAGES=self.storages_settings(self.root)):
             (Path(self.root) / "stale.txt").write_text("stale")
             Media.setUpClass()
             self.assertFalse(Path(self.root).exists())
@@ -101,8 +80,8 @@ class MediaCleanupMixinTests(SimpleTestCase):
         class Media(MediaCleanupMixin, SimpleTestCase):
             storages_to_clear = ("default",)
 
-        with override_storages(
-            {"default": {"BACKEND": "django.core.files.storage.InMemoryStorage"}},
+        with override_settings(
+            STORAGES={"default": {"BACKEND": "django.core.files.storage.InMemoryStorage"}},
         ):
             self.assertNotIsInstance(storages["default"], FileSystemStorage)
             Media.setUpClass()
@@ -113,7 +92,7 @@ class MediaCleanupMixinTests(SimpleTestCase):
             pass
 
         with (
-            override_storages(self.storages_settings("/var/lib/not-temporary")),
+            override_settings(STORAGES=self.storages_settings("/var/lib/not-temporary")),
             self.assertRaisesMessage(ImproperlyConfigured, "temporary"),
         ):
             Media.setUpClass()
@@ -125,7 +104,7 @@ class MediaCleanupMixinTests(SimpleTestCase):
         other = tempfile.mkdtemp(prefix="django-utils-other-")
         settings = self.storages_settings(self.root)
         settings["other"] = {"BACKEND": "django.core.files.storage.FileSystemStorage", "OPTIONS": {"location": other}}
-        with override_storages(settings):
+        with override_settings(STORAGES=settings):
             Media.setUpClass()
             self.assertFalse(Path(other).exists())
             self.assertTrue(Path(self.root).exists())

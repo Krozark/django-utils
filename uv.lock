@@ -269,7 +269,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", marker = "extra == 'crypto'", specifier = ">=42" },
-    { name = "django", specifier = ">=5.0" },
+    { name = "django", specifier = ">=5.2" },
     { name = "django-dirtyfields", specifier = ">=1.9" },
     { name = "django-environ", marker = "extra == 'crypto'", specifier = ">=0.11" },
     { name = "django-filter", marker = "extra == 'drf'", specifier = ">=24.1" },

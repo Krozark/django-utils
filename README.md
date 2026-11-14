@@ -33,7 +33,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-Compatible with Django 5.0+ and 6.x, Python 3.12+.
+Compatible with Django 5.2+ and 6.x, Python 3.12+.
 
 ## Layout
 

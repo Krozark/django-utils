@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Drop Django 5.0 and 5.1: Django 5.2 or later is required.
 - Add `django_utils.testing` (extra `testing`): `TestCase`/`SimpleTestCase` with frozen time, media cleanup and
   factory-friendly `users`, `subtests_cases`, `with_fixtures`, `rollback_atomic`, and contract test cases for models,
   fields, lookups and managers. `django_utils.testing.api` (also needs `drf`) adds contract test cases for
