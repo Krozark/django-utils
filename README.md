@@ -134,6 +134,8 @@ class ArticleContract(ModelContractTestCase):
 
 Base classes imported in a test module are skipped, while a class forgetting a required attribute fails.
 
+A complete walkthrough, from the settings to a viewset contract, is in [docs/testing.md](docs/testing.md).
+
 | Module | Content |
 |---|---|
 | `testing` | `TestCase` and `SimpleTestCase` (frozen time, media cleanup, DRF client, lazy `users`), the mixins `FrozenTimeMixin` and `MediaCleanupMixin`, `subtests_cases`, `with_fixtures`, `rollback_atomic` |
