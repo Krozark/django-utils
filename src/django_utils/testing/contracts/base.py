@@ -15,6 +15,10 @@ class ContractMixin:
     """
 
     required_attributes = ()
+    instances = []
+
+    def create_fixtures(self):
+        """Hook creating ``self.instances``; the default ``fixtures_<test name>`` methods call it."""
 
     @classmethod
     def setUpClass(cls):

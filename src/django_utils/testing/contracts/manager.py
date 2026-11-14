@@ -36,7 +36,7 @@ class ManagerContractTestCase(ContractMixin, TestCase):
         self.assertEqual(hasattr(self.manager, "get_by_natural_key"), self.expected_natural_keys is not None)
 
     def fixtures_expected_natural_keys(self):
-        pass
+        self.create_fixtures()
 
     @with_fixtures()
     def test_expected_natural_keys(self):

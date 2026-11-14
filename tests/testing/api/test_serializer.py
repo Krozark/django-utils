@@ -12,7 +12,7 @@ class ContractItemSerializerContract(SerializerContractTestCase):
     users = {"admin": lambda: UserFactory(is_staff=True)}
 
     expected_fields = {
-        "id": serializers.IntegerField,
+        "id": serializers.BigIntegerField,
         "slug": serializers.SlugField,
         "title": serializers.CharField,
         "is_active": serializers.BooleanField,

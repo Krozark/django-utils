@@ -26,7 +26,7 @@ class LookupContractTestCase(ContractMixin, TestCase):
         self.assertEqual(self.lookup_class.lookup_name, self.expected_lookup_name)
 
     def fixtures_expected_querysets(self):
-        pass
+        self.create_fixtures()
 
     @with_fixtures()
     def test_expected_querysets(self):

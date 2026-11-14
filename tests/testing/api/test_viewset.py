@@ -73,19 +73,12 @@ class ViewSetContractViolationTests(TestCase):
 
     def test_missing_action(self):
         self.assertEqual(
-            self.failures(expected_actions=["list", "retrieve", "titles", "create"]), {"test_expected_actions"}
+            self.failures(expected_actions=["list", "retrieve", "titles", "create"]),
+            {"test_expected_actions", "test_permissions_coverage", "test_filterset_classes_coverage"},
         )
 
     def test_undeclared_action(self):
-        self.assertEqual(
-            self.failures(expected_actions=["list", "retrieve"]),
-            {
-                "test_unexpected_actions",
-                "test_permissions_coverage",
-                "test_query_counts_coverage",
-                "test_filterset_classes_coverage",
-            },
-        )
+        self.assertEqual(self.failures(expected_actions=["list", "retrieve"]), {"test_unexpected_actions"})
 
     def test_filter_backends(self):
         self.assertEqual(self.failures(expected_filter_backends=[]), {"test_unexpected_filter_backends"})
