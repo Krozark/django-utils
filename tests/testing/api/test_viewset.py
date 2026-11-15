@@ -5,7 +5,12 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from django_utils.api.pagination import StandardResultsSetPagination
 from django_utils.api.renderers import HTMXRenderer, StandardJSONRenderer
 from django_utils.testing.api import ViewSetContractTestCase
-from tests.testing.api.viewsets import ContractItemFilterSet, ContractItemSerializer, ContractItemViewSet
+from tests.testing.api.viewsets import (
+    ContractItemFilterSet,
+    ContractItemSerializer,
+    ContractItemViewSet,
+    NPlusOneViewSet,
+)
 from tests.testing.factories import ContractItemFactory, UserFactory
 from tests.testing.helpers import failed_test_names, run_contract
 
@@ -46,7 +51,7 @@ class ContractItemViewSetContract(ViewSetContractTestCase):
     ]
     expected_orderings = [{"user": "admin", "instances": [0, 1, 2]}]
     expected_query_counts = [
-        {"action": "list", "user": "admin", "count": 2},
+        {"action": "list", "user": "admin", "count": 2, "create": lambda test: ContractItemFactory()},
         {"action": "list", "user": "admin", "query_params": {"is_active": "true"}, "count": 2},
         {"action": "retrieve", "user": "user", "count": 1},
         {"action": "titles", "user": "admin", "count": 1},
@@ -135,6 +140,26 @@ class ViewSetContractViolationTests(TestCase):
             *ContractItemViewSetContract.expected_query_counts[1:],
         ]
         self.assertEqual(self.failures(expected_query_counts=counts), {"test_expected_query_counts"})
+
+    def test_query_count_that_grows_with_the_data_fails(self):
+        counts = [{"action": "list", "user": "admin", "count": 3, "create": lambda test: ContractItemFactory()}]
+        failures = self.failures(
+            viewset_class=NPlusOneViewSet,
+            url_basename="nplusone",
+            action_url_kwargs={},
+            expected_query_counts=counts,
+        )
+        self.assertIn("test_expected_query_counts", failures)
+
+    def test_query_count_stable_with_the_data_passes(self):
+        self.assertNotIn(
+            "test_expected_query_counts",
+            self.failures(
+                expected_query_counts=[
+                    {"action": "retrieve", "user": "admin", "count": 1, "create": lambda test: ContractItemFactory()}
+                ]
+            ),
+        )
 
     def test_missing_query_count_fails_in_strict_mode(self):
         counts = ContractItemViewSetContract.expected_query_counts[:-1]

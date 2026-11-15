@@ -43,3 +43,23 @@ class ContractItemViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"], url_path="titles")
     def titles(self, request):
         return Response(list(self.get_queryset().values_list("title", flat=True)))
+
+
+class NPlusOneSerializer(serializers.ModelSerializer):
+    """Runs one extra query per item: the number of queries grows with the number of items."""
+
+    siblings = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ContractItem
+        fields = ["id", "siblings"]
+
+    def get_siblings(self, obj):
+        return ContractItem.objects.exclude(pk=obj.pk).count()
+
+
+class NPlusOneViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NPlusOneSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+    queryset = ContractItem.objects.order_by("pk")
