@@ -1,16 +1,14 @@
 import factory
 from django.contrib.auth import get_user_model
 
+from django_utils.testing.factories import UserFactory as BaseUserFactory
 from tests.models import ContractItem, TaggedItem, VersionedItem
 
 
-class UserFactory(factory.django.DjangoModelFactory):
+class UserFactory(BaseUserFactory):
     class Meta:
         model = get_user_model()
         django_get_or_create = ("username",)
-
-    username = factory.Sequence(lambda n: f"user{n}")
-    is_staff = False
 
 
 class VersionedItemFactory(factory.django.DjangoModelFactory):

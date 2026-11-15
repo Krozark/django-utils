@@ -139,6 +139,7 @@ A complete walkthrough, from the settings to a viewset contract, is in [docs/tes
 | Module | Content |
 |---|---|
 | `testing` | `TestCase` and `SimpleTestCase` (frozen time, media cleanup, DRF client, lazy `users`), the mixins `FrozenTimeMixin` and `MediaCleanupMixin`, `subtests_cases`, `with_fixtures`, `rollback_atomic` |
+| `testing.factories` | factory-boy factories: `UserFactory` (`AUTH_USER_MODEL`), `IsPublicMixinFactory` and `CreatedByMixinFactory`, base factories of the models using `IsPublicMixin` and `CreatedByMixin` |
 | `testing` (contracts) | `ModelContractTestCase`, `FieldContractTestCase`, `LookupContractTestCase`, `ManagerContractTestCase` |
 | `testing.api` (extra `drf`) | `RequestBuilderMixin`, `QueryCountMixin`, `SerializerContractTestCase`, `FilterSetContractTestCase`, `ViewSetContractTestCase` |
 

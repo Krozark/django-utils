@@ -163,7 +163,10 @@ urlpatterns = router.urls
 
 ## 3. Factories
 
-Contracts get their objects from factory-boy factories.
+Contracts get their objects from factory-boy factories. `django_utils.testing.factories` provides `UserFactory` (for
+`AUTH_USER_MODEL`) and the base factories of the model mixins: `IsPublicMixinFactory` (a random `is_public`) and
+`CreatedByMixinFactory` (one `created_by` user per object, `UserFactory` unless you override it). Combine them for
+a model using both mixins: `class ItemFactory(IsPublicMixinFactory, CreatedByMixinFactory)`.
 
 ```python
 # factories.py
