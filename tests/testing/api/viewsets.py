@@ -63,3 +63,12 @@ class NPlusOneViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = None
     queryset = ContractItem.objects.order_by("pk")
+
+
+class UserPermissionsViewSet(viewsets.ViewSet):
+    """Reads the permissions of the user, which Django caches on the user instance."""
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        return Response(sorted(request.user.get_all_permissions()))

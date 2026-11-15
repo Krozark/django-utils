@@ -113,10 +113,18 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
     def authenticated_as(self, user_key=None):
         """Make the test client act as ``users[user_key]`` (anonymous when ``None``) inside the block.
 
+        The user is rebuilt from its field values, like a real request gets it from the database: what Django
+        cached on the test's user instance (permissions, profile...) must not lower the number of queries.
         Authenticating and resetting go through DRF's ``force_authenticate``, which may query the session
         table: use this around ``assertNumQueries`` rather than inside it.
         """
-        self.client.force_authenticate(user=self.users[user_key] if user_key is not None else None)
+        user = self.users[user_key] if user_key is not None else None
+        if user is not None:
+            fields = user._meta.concrete_fields
+            user = type(user).from_db(
+                user._state.db, [field.attname for field in fields], [getattr(user, field.attname) for field in fields]
+            )
+        self.client.force_authenticate(user=user)
         try:
             yield
         finally:

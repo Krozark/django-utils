@@ -17,6 +17,8 @@
 - `ViewSetContractTestCase`: `query_params` may be a callable taking the test case, to use the fixtures.
 - `ViewSetContractTestCase`: `{"user": ..., "unreachable": True}` in `expected_querysets` covers a user the
   permissions always turn away.
+- `ViewSetContractTestCase`: the authenticated user is rebuilt for each request, so what Django cached on the test's
+  user (permissions, profile) no longer lowers `expected_query_counts`.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

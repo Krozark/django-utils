@@ -10,6 +10,7 @@ from tests.testing.api.viewsets import (
     ContractItemSerializer,
     ContractItemViewSet,
     NPlusOneViewSet,
+    UserPermissionsViewSet,
 )
 from tests.testing.factories import ContractItemFactory, UserFactory
 from tests.testing.helpers import failed_test_names, run_contract
@@ -177,3 +178,26 @@ class ViewSetContractViolationTests(TestCase):
     def test_missing_filterset_case_fails_in_strict_mode(self):
         classes = {"list": ContractItemFilterSet}
         self.assertEqual(self.failures(expected_filterset_classes=classes), {"test_filterset_classes_coverage"})
+
+
+@override_settings(ROOT_URLCONF="tests.testing.api.urls")
+class QueryCountsOfAFreshUserTests(TestCase):
+    """A real request loads its user again: what Django cached on the test's user must not lower the counts."""
+
+    def test_same_case_measured_twice_gives_the_same_count(self):
+        case = type(
+            "UserPermissionsContract",
+            (ViewSetContractTestCase,),
+            {
+                "viewset_class": UserPermissionsViewSet,
+                "url_basename": "userpermissions",
+                "users": {"user": UserFactory},
+                "strict_coverage": False,
+                "expected_actions": ["list"],
+                "expected_query_counts": [
+                    {"action": "list", "user": "user", "count": 2},
+                    {"action": "list", "user": "user", "count": 2},
+                ],
+            },
+        )
+        self.assertNotIn("test_expected_query_counts", failed_test_names(run_contract(case)))
