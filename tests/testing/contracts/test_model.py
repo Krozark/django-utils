@@ -1,3 +1,4 @@
+import unittest
 from unittest import mock
 
 from django.db import models
@@ -47,6 +48,18 @@ class ContractViolationTests(TestCase):
 
     def test_wrong_repr(self):
         self.assertEqual(self.failures(expected_repr="<ContractItem: Nope>"), {"test_repr"})
+
+    def test_undeclared_repr_and_verbose_names_are_not_generated(self):
+        case = type("Variation", (ContractItemContract,), {"expected_repr": None, "expected_verbose_names": {}})
+        names = unittest.TestLoader().getTestCaseNames(case)
+        self.assertNotIn("test_repr", names)
+        self.assertNotIn("test_verbose_names", names)
+        self.assertEqual(self.failures(expected_repr=None, expected_verbose_names={}), set())
+
+    def test_declaring_again_in_a_subclass_generates_the_tests(self):
+        undeclared = type("Undeclared", (ContractItemContract,), {"expected_repr": None})
+        redeclared = type("Redeclared", (undeclared,), {"expected_repr": "<ContractItem: Hello>"})
+        self.assertIn("test_repr", unittest.TestLoader().getTestCaseNames(redeclared))
 
     def test_unexpected_natural_key(self):
         self.assertEqual(self.failures(expected_natural_key=None), {"test_natural_key"})

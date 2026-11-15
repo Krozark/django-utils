@@ -35,12 +35,24 @@ class ModelContractTestCase(ContractMixin, TestCase):
     expected_fields = {}
     expected_properties = {}
 
+    #: Tests that are only generated when the attribute they check is declared.
+    _declared_tests = {"test_repr": "expected_repr", "test_verbose_names": "expected_verbose_names"}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for test_name, attribute in cls._declared_tests.items():
+            if test_name in cls.__dict__:
+                continue
+            if getattr(cls, attribute):
+                if getattr(cls, test_name) is None:
+                    setattr(cls, test_name, getattr(ModelContractTestCase, test_name))
+            else:
+                setattr(cls, test_name, None)
+
     def build_instance(self):
         return self.factory.build(**self.build_kwargs)
 
     def test_repr(self):
-        if self.expected_repr is None:
-            self.skipTest("expected_repr is not declared")
         self.assertEqual(repr(self.build_instance()), self.expected_repr)
 
     def test_natural_key(self):
@@ -51,8 +63,6 @@ class ModelContractTestCase(ContractMixin, TestCase):
         self.assertTupleEqual(self.build_instance().natural_key(), self.expected_natural_key)
 
     def test_verbose_names(self):
-        if not self.expected_verbose_names:
-            self.skipTest("expected_verbose_names is not declared")
         for language_code, (singular, plural) in self.expected_verbose_names.items():
             with self.subTest(case=language_code), translation.override(language_code):
                 self.assertEqual(str(self.model._meta.verbose_name), singular)
