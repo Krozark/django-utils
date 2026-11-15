@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -6,6 +7,7 @@ from django_utils.api.pagination import StandardResultsSetPagination
 from django_utils.api.renderers import HTMXRenderer, StandardJSONRenderer
 from django_utils.testing.api import ViewSetContractTestCase
 from tests.testing.api.viewsets import (
+    ContentTypeViewSet,
     ContractItemFilterSet,
     ContractItemSerializer,
     ContractItemViewSet,
@@ -224,3 +226,19 @@ class QueryCountsOfAFreshUserTests(TestCase):
         )
         run_contract(case)
         self.assertTrue(loaded)
+
+    def test_count_does_not_depend_on_the_caches_of_the_process(self):
+        case = type(
+            "ContentTypeContract",
+            (ViewSetContractTestCase,),
+            {
+                "viewset_class": ContentTypeViewSet,
+                "url_basename": "contenttype",
+                "users": {"user": UserFactory},
+                "strict_coverage": False,
+                "expected_actions": ["list"],
+                "expected_query_counts": [{"action": "list", "user": "user", "count": 0}],
+            },
+        )
+        ContentType.objects.clear_cache()
+        self.assertNotIn("test_expected_query_counts", failed_test_names(run_contract(case)))

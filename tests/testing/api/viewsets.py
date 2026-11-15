@@ -1,4 +1,5 @@
 import django_filters
+from django.contrib.contenttypes.models import ContentType
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
@@ -72,3 +73,12 @@ class UserPermissionsViewSet(viewsets.ViewSet):
 
     def list(self, request):
         return Response(sorted(request.user.get_all_permissions()))
+
+
+class ContentTypeViewSet(viewsets.ViewSet):
+    """Reads a content type, which Django caches in the process after the first query."""
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        return Response(ContentType.objects.get_for_model(ContractItem).pk)
