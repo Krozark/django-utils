@@ -201,3 +201,26 @@ class QueryCountsOfAFreshUserTests(TestCase):
             },
         )
         self.assertNotIn("test_expected_query_counts", failed_test_names(run_contract(case)))
+
+    def test_authenticated_user_goes_through_the_load_user_hook(self):
+        loaded = []
+
+        def build_authenticated_user(self, user):
+            loaded.append(user.pk)
+            return super(type(self), self).build_authenticated_user(user)
+
+        case = type(
+            "UserPermissionsContract",
+            (ViewSetContractTestCase,),
+            {
+                "viewset_class": UserPermissionsViewSet,
+                "url_basename": "userpermissions",
+                "users": {"user": UserFactory},
+                "strict_coverage": False,
+                "expected_actions": ["list"],
+                "expected_query_counts": [{"action": "list", "user": "user", "count": 2}],
+                "build_authenticated_user": build_authenticated_user,
+            },
+        )
+        run_contract(case)
+        self.assertTrue(loaded)

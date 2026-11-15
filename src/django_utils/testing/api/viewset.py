@@ -109,22 +109,28 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
         path = reverse(view_name, kwargs=self.resolve_url_kwargs(action))
         return f"{path}?{urlencode(query_params, doseq=True)}" if query_params else path
 
+    def build_authenticated_user(self, user):
+        """The user a request is authenticated with: ``user`` rebuilt from its field values.
+
+        A real request gets its user from the database, so what Django cached on the test's user instance
+        (permissions, profile...) must not lower the number of queries. Override it to prepare the user the way
+        the authentication of the project does (``select_related``, annotations...).
+        """
+        fields = user._meta.concrete_fields
+        return type(user).from_db(
+            user._state.db, [field.attname for field in fields], [getattr(user, field.attname) for field in fields]
+        )
+
     @contextmanager
     def authenticated_as(self, user_key=None):
         """Make the test client act as ``users[user_key]`` (anonymous when ``None``) inside the block.
 
-        The user is rebuilt from its field values, like a real request gets it from the database: what Django
-        cached on the test's user instance (permissions, profile...) must not lower the number of queries.
         Authenticating and resetting go through DRF's ``force_authenticate``, which may query the session
-        table: use this around ``assertNumQueries`` rather than inside it.
+        table: use this around ``assertNumQueries`` rather than inside it. The user comes from
+        ``build_authenticated_user()``.
         """
         user = self.users[user_key] if user_key is not None else None
-        if user is not None:
-            fields = user._meta.concrete_fields
-            user = type(user).from_db(
-                user._state.db, [field.attname for field in fields], [getattr(user, field.attname) for field in fields]
-            )
-        self.client.force_authenticate(user=user)
+        self.client.force_authenticate(user=self.build_authenticated_user(user) if user is not None else None)
         try:
             yield
         finally:
