@@ -1,7 +1,9 @@
 from contextlib import nullcontext
 
+from django.contrib.contenttypes.models import ContentType
 from django.test import SimpleTestCase, TestCase
 
+from django_utils.testing import TestCase as LibraryTestCase
 from django_utils.testing import subtests_cases, with_fixtures
 from tests.models import VersionedItem
 
@@ -60,6 +62,15 @@ class SubtestsCasesTests(TestCase):
     def test_case_without_data_is_rejected(self):
         with self.assertRaisesMessage(ValueError, "data"):
             subtests_cases({"bad": {"raises": ValueError}})
+
+
+class SubtestsCasesCacheIsolationTests(LibraryTestCase):
+    """Each case starts without the caches of the process, as a test does."""
+
+    @subtests_cases({"first": [], "second": []})
+    def test_content_type_is_read_from_the_database_by_each_case(self, case):
+        with self.assertNumQueries(1):
+            ContentType.objects.get_for_model(VersionedItem)
 
 
 class _FailFast:

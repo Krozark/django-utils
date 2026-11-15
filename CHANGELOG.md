@@ -26,6 +26,7 @@
   `clear_process_caches()`): content types and local-memory caches. A shared cache is never emptied.
   `assert_query_count` measures each request cold too, instead of warming the caches up first, and the
   viewset contract authenticates a new user before each measure (`before_each_measure()` hook).
+- `subtests_cases` empties the caches of the process before each case, like each test starts without them.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

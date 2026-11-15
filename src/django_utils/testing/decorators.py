@@ -2,6 +2,7 @@ import functools
 import re
 from collections.abc import Callable, Mapping
 
+from .mixins import clear_process_caches
 from .transactions import database_aliases_of, rollback_atomic
 
 __all__ = ["subtests_cases", "with_fixtures"]
@@ -24,6 +25,9 @@ def _normalize_case(name, case):
 def subtests_cases(cases: Mapping[str, object]) -> Callable:
     """Run the decorated test once per case, each one in its own sub-test and rolled-back transaction.
 
+    The caches of the process (content types, local-memory caches) are emptied before each case. What a case
+    caches on an object of the test (the permissions of ``self.user``...) is not: load the object again in the case.
+
     A case is either its data (list/tuple) or a dict ``{"data": ..., "raises": Exception, "message": "..."}``
     when the case is expected to raise.
     """
@@ -34,6 +38,7 @@ def subtests_cases(cases: Mapping[str, object]) -> Callable:
         def wrapper(self, *args):
             for name, (data, raises, message) in normalized.items():
                 with self.subTest(case=name), rollback_atomic(database_aliases_of(self)):
+                    clear_process_caches()  # a case never depends on what the previous one cached
                     if raises is None:
                         test_method(self, data, *args)
                     elif message is None:
