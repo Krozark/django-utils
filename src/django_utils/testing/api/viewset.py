@@ -308,8 +308,22 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
 
     def _check_query_count_is_stable(self, case):
         url = self.build_path(case["action"], case.get("query_params"))
+        user = self.users[case["user"]] if case["user"] is not None else None
         with self.authenticated_as(case["user"]):
-            self.assert_query_count(url, lambda: case["create"](self), expected=case["count"])
+            self._authenticate_before_each_measure = lambda: self.client.force_authenticate(
+                user=self.build_authenticated_user(user) if user is not None else None
+            )
+            try:
+                self.assert_query_count(url, lambda: case["create"](self), expected=case["count"])
+            finally:
+                self._authenticate_before_each_measure = None
+
+    def before_each_measure(self):
+        """A new user for each measured request, as a real request gets it: what the previous one cached on the
+        user (permissions, profile...) must not lower the count."""
+        authenticate = getattr(self, "_authenticate_before_each_measure", None)
+        if authenticate is not None:
+            authenticate()
 
     def test_query_counts_coverage(self):
         safe_actions = {

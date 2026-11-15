@@ -26,9 +26,13 @@ class QueryCountMixin:
     DETAIL_QUERY_COUNT = 1
     LIST_QUERY_COUNT = 2  # the COUNT of the pagination, and the objects
 
+    def before_each_measure(self):
+        """Hook called before each measured request, after the caches of the process were emptied."""
+
     def _get_queries(self, url):
         """Return the queries run by a GET, and the number of queries it is expected to run by default."""
         clear_process_caches()  # each measure starts cold: nothing cached by the previous request lowers the count
+        self.before_each_measure()
         with CaptureQueriesContext(connection) as context:
             response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)

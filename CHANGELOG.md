@@ -23,7 +23,8 @@
   process (content types, local-memory caches), so it never depends on the order of the tests.
 - `TestCase` and `SimpleTestCase` empty the caches of the process before each test (`CacheIsolationMixin`,
   `clear_process_caches()`): content types and local-memory caches. A shared cache is never emptied.
-  `assert_query_count` measures each request cold too, instead of warming the caches up first.
+  `assert_query_count` measures each request cold too, instead of warming the caches up first, and the
+  viewset contract authenticates a new user before each measure (`before_each_measure()` hook).
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

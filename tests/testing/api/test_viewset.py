@@ -243,3 +243,20 @@ class QueryCountsOfAFreshUserTests(TestCase):
             },
         )
         self.assertNotIn("test_expected_query_counts", failed_test_names(run_contract(case)))
+
+    def test_every_measure_of_the_stability_check_gets_a_fresh_user(self):
+        case = type(
+            "UserPermissionsContract",
+            (ViewSetContractTestCase,),
+            {
+                "viewset_class": UserPermissionsViewSet,
+                "url_basename": "userpermissions",
+                "users": {"user": UserFactory},
+                "strict_coverage": False,
+                "expected_actions": ["list"],
+                "expected_query_counts": [
+                    {"action": "list", "user": "user", "count": 2, "create": lambda test: UserFactory()}
+                ],
+            },
+        )
+        self.assertNotIn("test_expected_query_counts", failed_test_names(run_contract(case)))
