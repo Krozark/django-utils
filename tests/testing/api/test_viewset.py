@@ -19,7 +19,7 @@ from tests.testing.helpers import failed_test_names, run_contract
 class ContractItemViewSetContract(ViewSetContractTestCase):
     viewset_class = ContractItemViewSet
     url_basename = "contractitem"
-    action_url_kwargs = {"retrieve": {"slug": "first"}}
+    action_url_kwargs = {"retrieve": lambda test: {"slug": test.instances[0].slug}}
     users = {
         "anonymous": None,
         "user": lambda: UserFactory(username="user"),

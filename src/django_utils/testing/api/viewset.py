@@ -171,6 +171,10 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
             with self.subTest(case=backend):
                 self.assertIn(backend, self.expected_filter_backends)
 
+    def fixtures_expected_filterset_classes(self):
+        self.create_fixtures()
+
+    @with_fixtures()
     def test_expected_filterset_classes(self):
         for action, expected in self.expected_filterset_classes.items():
             with self.subTest(case=action):
@@ -190,6 +194,10 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
             "expected_filterset_classes",
         )
 
+    def fixtures_expected_serializer_classes(self):
+        self.create_fixtures()
+
+    @with_fixtures()
     def test_expected_serializer_classes(self):
         for action, expected in self.expected_serializer_classes.items():
             with self.subTest(case=action):

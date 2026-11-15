@@ -10,6 +10,8 @@
   contract `expected_query_counts`).
 - `ModelContractTestCase` ignores the properties that libraries such as django-polymorphic generate at runtime, which
   made `expected_properties` depend on the order of the tests.
+- `ViewSetContractTestCase`: `expected_serializer_classes` and `expected_filterset_classes` now run with the fixtures, so
+  `action_url_kwargs` callables can use `self.instances` for detail actions.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 
