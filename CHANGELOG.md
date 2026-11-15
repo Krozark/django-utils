@@ -19,8 +19,11 @@
   permissions always turn away.
 - `ViewSetContractTestCase`: the authenticated user is rebuilt for each request, so what Django cached on the test's
   user (permissions, profile) no longer lowers `expected_query_counts`. Override `build_authenticated_user()` to
-  prepare it like the authentication of the project does. A count is measured on a second request, so it no
-  longer depends on which test filled the caches of the process (content types...).
+  prepare it like the authentication of the project does. Each count is measured without any cache of the
+  process (content types, local-memory caches), so it never depends on the order of the tests.
+- `TestCase` and `SimpleTestCase` empty the caches of the process before each test (`CacheIsolationMixin`,
+  `clear_process_caches()`): content types and local-memory caches. A shared cache is never emptied.
+  `assert_query_count` measures each request cold too, instead of warming the caches up first.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

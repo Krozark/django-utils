@@ -2,18 +2,18 @@ from django.test import SimpleTestCase as DjangoSimpleTestCase
 from django.test import TestCase as DjangoTestCase
 from rest_framework.test import APIClient
 
-from .mixins import FrozenTimeMixin, MediaCleanupMixin
+from .mixins import CacheIsolationMixin, FrozenTimeMixin, MediaCleanupMixin
 
 __all__ = ["SimpleTestCase", "TestCase"]
 
 
-class SimpleTestCase(FrozenTimeMixin, DjangoSimpleTestCase):
+class SimpleTestCase(FrozenTimeMixin, CacheIsolationMixin, DjangoSimpleTestCase):
     """Database-free test case with frozen-time support."""
 
     maxDiff = None
 
 
-class TestCase(FrozenTimeMixin, MediaCleanupMixin, DjangoTestCase):
+class TestCase(FrozenTimeMixin, MediaCleanupMixin, CacheIsolationMixin, DjangoTestCase):
     """Django ``TestCase`` with frozen time, media cleanup, a DRF client and lazily built ``users``.
 
     ``users`` maps a key to ``None`` (anonymous), a model instance, or a callable creating the user

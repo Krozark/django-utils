@@ -5,6 +5,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from rest_framework import status
 
+from ..mixins import clear_process_caches
 from ..transactions import database_aliases_of, rollback_atomic
 
 __all__ = ["QueryCountMixin"]
@@ -27,6 +28,7 @@ class QueryCountMixin:
 
     def _get_queries(self, url):
         """Return the queries run by a GET, and the number of queries it is expected to run by default."""
+        clear_process_caches()  # each measure starts cold: nothing cached by the previous request lowers the count
         with CaptureQueriesContext(connection) as context:
             response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -41,7 +43,6 @@ class QueryCountMixin:
         nested object for a detail endpoint. ``expected`` overrides the default budget.
         """
         create()
-        self._get_queries(url)  # warm up process-wide caches (ContentType, permissions...)
         create()
         first, default = self._get_queries(url)
         create()

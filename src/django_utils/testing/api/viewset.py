@@ -48,8 +48,8 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
       the permissions always turn away before ``get_queryset()`` (e.g. the anonymous user on an authenticated-only
       viewset) is declared with ``{"user": ..., "unreachable": True}``, which only satisfies the coverage.
     - ``expected_orderings``: same keys, ordered, against the filtered queryset.
-    - ``expected_query_counts``: ``{"action", "user", "query_params", "count", "create"}``, measured on a second
-      request, once the caches of the process are filled. With ``create`` (a
+    - ``expected_query_counts``: ``{"action", "user", "query_params", "count", "create"}``, measured without any cache
+      of the process (content types...). With ``create`` (a
       callable taking the test case and adding one more object to the response), the count must also stay the same
       with 2 then 3 objects, which detects N+1 queries (see ``QueryCountMixin``).
 
@@ -298,19 +298,13 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
     def test_expected_query_counts(self):
         for index, case in enumerate(self.expected_query_counts):
             with self.subTest(case=self._case_label(case, index)), rollback_atomic(database_aliases_of(self)):
-                self._warm_up(case)
                 if "create" in case:
                     self._check_query_count_is_stable(case)
                     continue
+                self.clear_caches()  # a count never depends on what an earlier case cached
                 with self.authenticated_as(case["user"]), self.assertNumQueries(case["count"]):
                     response = self.send_request(case["action"], query_params=case.get("query_params"))
                 self.assertTrue(status.is_success(response.status_code) or status.is_redirect(response.status_code))
-
-    def _warm_up(self, case):
-        """Send the request once, uncounted: the caches of the process (content types...) are filled by whichever
-        test comes first, and a count must not depend on the order of the tests."""
-        with self.authenticated_as(case["user"]):
-            self.send_request(case["action"], query_params=case.get("query_params"))
 
     def _check_query_count_is_stable(self, case):
         url = self.build_path(case["action"], case.get("query_params"))

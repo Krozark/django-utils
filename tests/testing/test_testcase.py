@@ -1,7 +1,10 @@
+from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
 from django.test import SimpleTestCase as DjangoSimpleTestCase
 from rest_framework.test import APIClient
 
 from django_utils.testing import SimpleTestCase, TestCase
+from tests.models import ContractItem
 from tests.testing.factories import UserFactory
 
 
@@ -45,3 +48,27 @@ class SimpleTestCaseTests(DjangoSimpleTestCase):
     def test_is_database_free(self):
         self.assertEqual(SimpleTestCase.databases, set())
         self.assertIsNone(SimpleTestCase.maxDiff)
+
+
+class CacheIsolationTests(TestCase):
+    """No process-level cache survives from a test to the next one, whichever runs first."""
+
+    def _content_type_is_read_from_the_database(self):
+        with self.assertNumQueries(1):
+            ContentType.objects.get_for_model(ContractItem)
+
+    def test_first(self):
+        self._content_type_is_read_from_the_database()
+
+    def test_second(self):
+        self._content_type_is_read_from_the_database()
+
+
+class LocalMemoryCacheIsolationTests(TestCase):
+    def test_local_memory_caches_are_emptied(self):
+        self.assertIsNone(caches["default"].get("leftover"))
+        caches["default"].set("leftover", 1)
+
+    def test_local_memory_caches_are_emptied_again(self):
+        self.assertIsNone(caches["default"].get("leftover"))
+        caches["default"].set("leftover", 1)
