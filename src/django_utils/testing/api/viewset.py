@@ -49,7 +49,8 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
       viewset) is declared with ``{"user": ..., "unreachable": True}``, which only satisfies the coverage.
     - ``expected_orderings``: same keys, ordered, against the filtered queryset.
     - ``expected_query_counts``: ``{"action", "user", "query_params", "count", "create"}``, measured without any cache
-      of the process (content types...). With ``create`` (a
+      of the process (content types...), once the user is authenticated and their permissions loaded: they count
+      the queries of the view. With ``create`` (a
       callable taking the test case and adding one more object to the response), the count must also stay the same
       with 2 then 3 objects, which detects N+1 queries (see ``QueryCountMixin``).
 
@@ -111,16 +112,20 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
         return f"{path}?{urlencode(query_params, doseq=True)}" if query_params else path
 
     def build_authenticated_user(self, user):
-        """The user a request is authenticated with: ``user`` rebuilt from its field values.
+        """The user a request is authenticated with, prepared before any query is counted.
 
-        A real request gets its user from the database, so what Django cached on the test's user instance
-        (permissions, profile...) must not lower the number of queries. Override it to prepare the user the way
-        the authentication of the project does (``select_related``, annotations...).
+        ``user`` is rebuilt from its field values, like a real request gets it from the database, so what Django
+        cached on the test's instance cannot hide a query. Its permissions are loaded here: what a count measures
+        is the view (its queryset above all), not the authentication and the authorization of the user. Override it
+        to prepare the user the way the authentication of the project does (``select_related``, annotations...).
         """
         fields = user._meta.concrete_fields
-        return type(user).from_db(
+        fresh = type(user).from_db(
             user._state.db, [field.attname for field in fields], [getattr(user, field.attname) for field in fields]
         )
+        if hasattr(fresh, "get_all_permissions"):
+            fresh.get_all_permissions()
+        return fresh
 
     @contextmanager
     def authenticated_as(self, user_key=None):

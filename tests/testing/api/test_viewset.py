@@ -185,7 +185,7 @@ class ViewSetContractViolationTests(TestCase):
 class QueryCountsOfAFreshUserTests(TestCase):
     """A real request loads its user again: what Django cached on the test's user must not lower the counts."""
 
-    def test_same_case_measured_twice_gives_the_same_count(self):
+    def test_permissions_of_the_user_are_loaded_before_counting(self):
         case = type(
             "UserPermissionsContract",
             (ViewSetContractTestCase,),
@@ -196,8 +196,8 @@ class QueryCountsOfAFreshUserTests(TestCase):
                 "strict_coverage": False,
                 "expected_actions": ["list"],
                 "expected_query_counts": [
-                    {"action": "list", "user": "user", "count": 2},
-                    {"action": "list", "user": "user", "count": 2},
+                    {"action": "list", "user": "user", "count": 0},
+                    {"action": "list", "user": "user", "count": 0},
                 ],
             },
         )
@@ -219,7 +219,7 @@ class QueryCountsOfAFreshUserTests(TestCase):
                 "users": {"user": UserFactory},
                 "strict_coverage": False,
                 "expected_actions": ["list"],
-                "expected_query_counts": [{"action": "list", "user": "user", "count": 2}],
+                "expected_query_counts": [{"action": "list", "user": "user", "count": 0}],
                 "build_authenticated_user": build_authenticated_user,
             },
         )
@@ -255,7 +255,7 @@ class QueryCountsOfAFreshUserTests(TestCase):
                 "strict_coverage": False,
                 "expected_actions": ["list"],
                 "expected_query_counts": [
-                    {"action": "list", "user": "user", "count": 2, "create": lambda test: UserFactory()}
+                    {"action": "list", "user": "user", "count": 0, "create": lambda test: UserFactory()}
                 ],
             },
         )
