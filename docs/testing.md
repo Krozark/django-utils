@@ -426,6 +426,24 @@ class ContractItemViewSetContract(ViewSetContractTestCase):
 `strict_coverage` (on by default) makes this contract fail if an action x user permission, an action filterset, a
 user queryset or the query count of a safe action is missing. Set `strict_coverage = False` to opt out.
 
+### What a count measures
+
+An `expected_query_counts` entry counts the queries of the view, its queryset above all, not those of the
+authentication of the user:
+
+- the user is rebuilt from its field values for each request (what Django cached on the test's instance cannot hide a
+  query), and its permissions are loaded before counting;
+- override `build_authenticated_user()` to prepare the user the way the authentication of your project does
+  (`select_related`, annotations...), still before the count;
+- the caches of the process (content types, local-memory caches) are emptied before each measure, so a count never
+  depends on which test ran first;
+- the stability check of `create` authenticates a new user before each of its measures (`before_each_measure()`).
+
+Write a comment next to each count above one, listing the SQL queries it stands for.
+
+A project base class that only shares defaults (a pagination class, renderers...) sets `abstract_contract = True` to be
+skipped when collected; the flag is not inherited by its subclasses.
+
 ### Query counts outside a contract
 
 `QueryCountMixin` is the same N+1 check for any GET endpoint, for instance a view the contract does not cover:
@@ -475,6 +493,11 @@ class PricingTests(TestCase):
     def test_total(self):
         self.assertEqual(self.order.total, 12)
 ```
+
+Each test starts without the caches of the process (content types and local-memory caches), and so does each case of
+`subtests_cases`: `CacheIsolationMixin` / `clear_process_caches()`. A shared cache (Redis, Memcached) is never emptied.
+What a case caches on an object of the test (the permissions of `self.user`...) is not: load the object again in the
+case.
 
 ## 7. Running
 
