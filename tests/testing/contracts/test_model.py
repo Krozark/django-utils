@@ -119,3 +119,20 @@ class AbstractContractTests(TestCase):
         result = run_contract(Forgotten)
         self.assertFalse(result.skipped)
         self.assertTrue(result.errors)
+
+    def test_project_base_class_marked_abstract_is_skipped(self):
+        class ProjectBase(ModelContractTestCase):
+            abstract_contract = True
+
+        result = run_contract(ProjectBase)
+        self.assertEqual(result.errors, [])
+        self.assertEqual(len(result.skipped), 1)
+
+    def test_abstract_flag_is_not_inherited(self):
+        class ProjectBase(ModelContractTestCase):
+            abstract_contract = True
+
+        class Concrete(ProjectBase):
+            pass
+
+        self.assertEqual(failed_test_names(run_contract(Concrete)), {"setUpClass"})

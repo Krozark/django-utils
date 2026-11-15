@@ -12,6 +12,8 @@
   made `expected_properties` depend on the order of the tests.
 - `ViewSetContractTestCase`: `expected_serializer_classes` and `expected_filterset_classes` now run with the fixtures, so
   `action_url_kwargs` callables can use `self.instances` for detail actions.
+- Contract test cases: a project base class that only shares defaults sets `abstract_contract = True` to be skipped
+  when collected (the flag is not inherited).
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 
