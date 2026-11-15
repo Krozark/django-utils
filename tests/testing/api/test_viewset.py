@@ -130,6 +130,10 @@ class ViewSetContractViolationTests(TestCase):
         querysets = [{"user": "anonymous", "instances": [0, 1, 2]}, *ContractItemViewSetContract.expected_querysets[1:]]
         self.assertEqual(self.failures(expected_querysets=querysets), {"test_expected_querysets"})
 
+    def test_unreachable_queryset_case_is_not_evaluated(self):
+        querysets = [{"user": "anonymous", "unreachable": True}, *ContractItemViewSetContract.expected_querysets[1:]]
+        self.assertEqual(self.failures(expected_querysets=querysets), set())
+
     def test_missing_queryset_user_fails_in_strict_mode(self):
         querysets = ContractItemViewSetContract.expected_querysets[1:]
         self.assertEqual(self.failures(expected_querysets=querysets), {"test_querysets_coverage"})

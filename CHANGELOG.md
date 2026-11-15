@@ -15,6 +15,8 @@
 - Contract test cases: a project base class that only shares defaults sets `abstract_contract = True` to be skipped
   when collected (the flag is not inherited).
 - `ViewSetContractTestCase`: `query_params` may be a callable taking the test case, to use the fixtures.
+- `ViewSetContractTestCase`: `{"user": ..., "unreachable": True}` in `expected_querysets` covers a user the
+  permissions always turn away.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

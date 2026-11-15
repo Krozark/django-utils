@@ -44,7 +44,9 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
     ``"list"``, ``query_params`` to ``{}`` (a dict, or a callable taking the test case, to use the fixtures) and
     ``instances`` are indexes in ``self.instances``:
     - ``expected_permissions``: ``{"action", "user", "allowed", "query_params", "data"}``.
-    - ``expected_querysets``: ``{"user", "action", "query_params", "instances"}`` against ``get_queryset()``.
+    - ``expected_querysets``: ``{"user", "action", "query_params", "instances"}`` against ``get_queryset()``. A user
+      the permissions always turn away before ``get_queryset()`` (e.g. the anonymous user on an authenticated-only
+      viewset) is declared with ``{"user": ..., "unreachable": True}``, which only satisfies the coverage.
     - ``expected_orderings``: same keys, ordered, against the filtered queryset.
     - ``expected_query_counts``: ``{"action", "user", "query_params", "count", "create"}``. With ``create`` (a
       callable taking the test case and adding one more object to the response), the count must also stay the same
@@ -226,6 +228,8 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
     @with_fixtures()
     def test_expected_querysets(self):
         for index, case in enumerate(self.expected_querysets):
+            if case.get("unreachable"):
+                continue
             with self.subTest(case=self._case_label(case, index)):
                 viewset = self._build_case_viewset(case)
                 expected = [self.instances[i] for i in case["instances"]]
