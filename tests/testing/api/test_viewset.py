@@ -47,12 +47,17 @@ class ContractItemViewSetContract(ViewSetContractTestCase):
         {"user": "anonymous", "instances": [0, 1]},
         {"user": "user", "instances": [0, 1]},
         {"user": "admin", "instances": [0, 1, 2]},
-        {"user": "admin", "action": "titles", "query_params": {"is_active": "true"}, "instances": [0, 1, 2]},
+        {
+            "user": "admin",
+            "action": "titles",
+            "query_params": lambda test: {"is_active": "true"},
+            "instances": [0, 1, 2],
+        },
     ]
     expected_orderings = [{"user": "admin", "instances": [0, 1, 2]}]
     expected_query_counts = [
         {"action": "list", "user": "admin", "count": 2, "create": lambda test: ContractItemFactory()},
-        {"action": "list", "user": "admin", "query_params": {"is_active": "true"}, "count": 2},
+        {"action": "list", "user": "admin", "query_params": lambda test: {"is_active": "true"}, "count": 2},
         {"action": "retrieve", "user": "user", "count": 1},
         {"action": "titles", "user": "admin", "count": 1},
     ]

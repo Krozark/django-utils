@@ -41,7 +41,8 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
     ``expected_parser_classes``.
 
     Behavioural expectations, all lists of dicts where ``user`` is a ``users`` key, ``action`` defaults to
-    ``"list"``, ``query_params`` to ``{}`` and ``instances`` are indexes in ``self.instances``:
+    ``"list"``, ``query_params`` to ``{}`` (a dict, or a callable taking the test case, to use the fixtures) and
+    ``instances`` are indexes in ``self.instances``:
     - ``expected_permissions``: ``{"action", "user", "allowed", "query_params", "data"}``.
     - ``expected_querysets``: ``{"user", "action", "query_params", "instances"}`` against ``get_queryset()``.
     - ``expected_orderings``: same keys, ordered, against the filtered queryset.
@@ -97,7 +98,11 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
         url_kwargs = self.action_url_kwargs.get(action, {})
         return url_kwargs(self) if callable(url_kwargs) else url_kwargs
 
+    def resolve_query_params(self, query_params):
+        return query_params(self) if callable(query_params) else query_params
+
     def build_path(self, action, query_params=None):
+        query_params = self.resolve_query_params(query_params)
         _, view_name, _ = self.actions_mapping[action]
         path = reverse(view_name, kwargs=self.resolve_url_kwargs(action))
         return f"{path}?{urlencode(query_params, doseq=True)}" if query_params else path
@@ -130,6 +135,7 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixi
         """A viewset instance ready for ``get_queryset()``/``get_serializer_class()``, as if serving ``action``."""
         method, _, detail = self.actions_mapping[action]
         user = self.users[user_key] if user_key is not None else None
+        query_params = self.resolve_query_params(query_params)
 
         viewset = self.viewset_class()
         viewset.action = action
