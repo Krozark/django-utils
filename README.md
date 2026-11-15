@@ -140,7 +140,7 @@ A complete walkthrough, from the settings to a viewset contract, is in [docs/tes
 |---|---|
 | `testing` | `TestCase` and `SimpleTestCase` (frozen time, media cleanup, DRF client, lazy `users`), the mixins `FrozenTimeMixin` and `MediaCleanupMixin`, `subtests_cases`, `with_fixtures`, `rollback_atomic` |
 | `testing` (contracts) | `ModelContractTestCase`, `FieldContractTestCase`, `LookupContractTestCase`, `ManagerContractTestCase` |
-| `testing.api` (extra `drf`) | `RequestBuilderMixin`, `SerializerContractTestCase`, `FilterSetContractTestCase`, `ViewSetContractTestCase` |
+| `testing.api` (extra `drf`) | `RequestBuilderMixin`, `QueryCountMixin`, `SerializerContractTestCase`, `FilterSetContractTestCase`, `ViewSetContractTestCase` |
 
 - `TestCase.users` maps a key to `None` (anonymous), an instance, or a callable creating the user (typically a
   factory-boy call), resolved once per class: `users = {"anonymous": None, "admin": lambda: UserFactory(is_staff=True)}`.
@@ -175,6 +175,11 @@ class ArticleViewSetContract(ViewSetContractTestCase):
     def create_fixtures(self):
         self.instances = [ArticleFactory(pk=1), ArticleFactory(pk=2)]
 ```
+
+`QueryCountMixin` detects N+1 queries: `self.assert_query_count(url, create)` requires a GET to run the same number
+of queries with 2 then 3 objects (`create` adds one), 1 for a detail and 2 for a paginated list unless `expected` says
+otherwise; `assert_query_counts({url: create})` runs several cases. In a viewset contract, add `"create": lambda test: ...`
+to an `expected_query_counts` case to get the same check.
 
 With `strict_coverage = True` (the default) the viewset contract also fails when an action x user permission, an
 action filterset, a user queryset or the query count of a safe action is not declared.

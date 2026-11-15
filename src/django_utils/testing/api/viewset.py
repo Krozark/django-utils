@@ -9,6 +9,7 @@ from ..contracts.base import ContractMixin
 from ..decorators import with_fixtures
 from ..testcases import TestCase
 from ..transactions import database_aliases_of, rollback_atomic
+from .query_counts import QueryCountMixin
 from .requests import RequestBuilderMixin
 
 __all__ = ["ViewSetContractTestCase"]
@@ -25,7 +26,7 @@ CRUD_ACTIONS = {
 DENIED_STATUSES = (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
 
 
-class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, TestCase):
+class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, QueryCountMixin, TestCase):
     """Contract of a DRF viewset, exercised through the real URLs (the test must set ``ROOT_URLCONF``).
 
     Setup:
@@ -44,7 +45,9 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, TestCase):
     - ``expected_permissions``: ``{"action", "user", "allowed", "query_params", "data"}``.
     - ``expected_querysets``: ``{"user", "action", "query_params", "instances"}`` against ``get_queryset()``.
     - ``expected_orderings``: same keys, ordered, against the filtered queryset.
-    - ``expected_query_counts``: ``{"action", "user", "query_params", "count"}``.
+    - ``expected_query_counts``: ``{"action", "user", "query_params", "count", "create"}``. With ``create`` (a
+      callable taking the test case and adding one more object to the response), the count must also stay the same
+      with 2 then 3 objects, which detects N+1 queries (see ``QueryCountMixin``).
 
     With ``strict_coverage`` (default), the contract also fails when an action x user permission, an action
     filterset, a user queryset or a safe action query count is not declared.
@@ -262,9 +265,17 @@ class ViewSetContractTestCase(ContractMixin, RequestBuilderMixin, TestCase):
     def test_expected_query_counts(self):
         for index, case in enumerate(self.expected_query_counts):
             with self.subTest(case=self._case_label(case, index)), rollback_atomic(database_aliases_of(self)):
+                if "create" in case:
+                    self._check_query_count_is_stable(case)
+                    continue
                 with self.authenticated_as(case["user"]), self.assertNumQueries(case["count"]):
                     response = self.send_request(case["action"], query_params=case.get("query_params"))
                 self.assertTrue(status.is_success(response.status_code) or status.is_redirect(response.status_code))
+
+    def _check_query_count_is_stable(self, case):
+        url = self.build_path(case["action"], case.get("query_params"))
+        with self.authenticated_as(case["user"]):
+            self.assert_query_count(url, lambda: case["create"](self), expected=case["count"])
 
     def test_query_counts_coverage(self):
         safe_actions = {

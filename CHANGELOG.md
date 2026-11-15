@@ -6,7 +6,8 @@
 - Add `django_utils.testing` (extra `testing`): `TestCase`/`SimpleTestCase` with frozen time, media cleanup and
   factory-friendly `users`, `subtests_cases`, `with_fixtures`, `rollback_atomic`, and contract test cases for models,
   fields, lookups and managers. `django_utils.testing.api` (also needs `drf`) adds contract test cases for
-  serializers, filtersets and viewsets, and `RequestBuilderMixin`.
+  serializers, filtersets and viewsets, `RequestBuilderMixin` and `QueryCountMixin` (N+1 detection, also available as the `create` key of the viewset
+  contract `expected_query_counts`).
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

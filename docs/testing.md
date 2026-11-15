@@ -406,7 +406,8 @@ class ContractItemViewSetContract(ViewSetContractTestCase):
     ]
     expected_orderings = [{"user": "admin", "instances": [0, 1, 2]}]
     expected_query_counts = [
-        {"action": "list", "user": "admin", "count": 2},
+        # "create" adds one object: the count must stay the same with 2 then 3 objects (no N+1)
+        {"action": "list", "user": "admin", "count": 2, "create": lambda test: ContractItemFactory()},
         {"action": "retrieve", "user": "user", "count": 1},
         {"action": "titles", "user": "admin", "count": 1},
     ]
@@ -421,6 +422,29 @@ class ContractItemViewSetContract(ViewSetContractTestCase):
 
 `strict_coverage` (on by default) makes this contract fail if an action x user permission, an action filterset, a
 user queryset or the query count of a safe action is missing. Set `strict_coverage = False` to opt out.
+
+### Query counts outside a contract
+
+`QueryCountMixin` is the same N+1 check for any GET endpoint, for instance a view the contract does not cover:
+
+```python
+from django_utils.testing import TestCase
+from django_utils.testing.api import QueryCountMixin
+
+
+class ItemsQueryCountTests(QueryCountMixin, TestCase):
+    def setUp(self):
+        self.client.force_authenticate(user=UserFactory(is_staff=True))
+
+    def test_get_endpoints_do_not_run_n_plus_one(self):
+        self.assert_query_counts(
+            {
+                "/items/": ContractItemFactory,  # paginated list: 2 queries by default
+                "/items/first/": ContractItemFactory,  # detail: 1 query by default
+                "/items/titles/": (ContractItemFactory, 1),  # explicit budget
+            }
+        )
+```
 
 ## 6. Helpers for your own tests
 
