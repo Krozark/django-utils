@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.db import models
 from django.test import TestCase
 
@@ -92,6 +94,16 @@ class ContractViolationTests(TestCase):
     def test_property_without_getter_check(self):
         props = {**ContractItemContract.expected_properties, "upper_title": {"getter_method": None}}
         self.assertEqual(self.failures(expected_properties=props), set())
+
+    def test_property_generated_at_runtime_is_ignored(self):
+        def make_accessor():
+            def accessor(instance):
+                return None
+
+            return property(accessor)
+
+        with mock.patch.object(ContractItem, "generated_accessor", make_accessor(), create=True):
+            self.assertEqual(self.failures(), set())
 
 
 class AbstractContractTests(TestCase):

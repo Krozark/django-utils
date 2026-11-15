@@ -8,6 +8,8 @@
   fields, lookups and managers. `django_utils.testing.api` (also needs `drf`) adds contract test cases for
   serializers, filtersets and viewsets, factory-boy factories for the mixins (`django_utils.testing.factories`), `RequestBuilderMixin` and `QueryCountMixin` (N+1 detection, also available as the `create` key of the viewset
   contract `expected_query_counts`).
+- `ModelContractTestCase` ignores the properties that libraries such as django-polymorphic generate at runtime, which
+  made `expected_properties` depend on the order of the tests.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 

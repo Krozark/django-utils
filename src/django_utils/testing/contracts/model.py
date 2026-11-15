@@ -88,13 +88,20 @@ class ModelContractTestCase(ContractMixin, TestCase):
                 )
 
     def _model_properties(self):
-        """Properties and cached properties defined by the model itself (Django's own are ignored)."""
-        return {
-            name: inspect.getattr_static(self.model, name)
-            for name in dir(self.model)
-            if name not in dir(models.Model)
-            and isinstance(inspect.getattr_static(self.model, name), property | cached_property)
-        }
+        """Properties and cached properties written on the model (Django's own and runtime-generated ones are ignored).
+
+        Libraries such as django-polymorphic add accessors to the model with functions created at runtime
+        (their qualified name contains ``<locals>``); they are not part of the model's declared API.
+        """
+        properties = {}
+        for name in dir(self.model):
+            attribute = inspect.getattr_static(self.model, name)
+            if name in dir(models.Model) or not isinstance(attribute, property | cached_property):
+                continue
+            function = attribute.fget if isinstance(attribute, property) else attribute.func
+            if "<locals>" not in getattr(function, "__qualname__", ""):
+                properties[name] = attribute
+        return properties
 
     def test_expected_properties(self):
         available = self._model_properties()
