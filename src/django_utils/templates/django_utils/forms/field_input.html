@@ -1,0 +1,6 @@
+<div class="{{ wrapper_class }}">
+    <label class="form-label{% if field.field.required %} required{% endif %}" for="{{ field.auto_id }}">{{ label }}</label>
+    {{ field }}
+    {% if description %}<div class="form-help-text">{{ description }}</div>{% endif %}
+    {% for error in field.errors %}<div class="form-message error">⚠ {{ error }}</div>{% endfor %}
+</div>

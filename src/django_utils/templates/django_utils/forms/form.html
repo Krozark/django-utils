@@ -1,0 +1,21 @@
+{% load django_utils_forms %}
+
+{% csrf_token %}
+
+<div class="form-grid" style="--form-columns: {{ grid_columns }}">
+    {% for field in form %}
+        {% if field.field.widget.input_type == 'hidden' %}
+            {{ field }}
+        {% elif field.field.widget.input_type == 'checkbox' %}
+            {% fluid_form_field field field_type='checkbox' description=field.help_text %}
+        {% elif 'FileInput' in field.field.widget %}
+            {% fluid_form_field field field_type='file' description=field.help_text %}
+        {% else %}
+            {% if show_labels %}
+                {% fluid_form_field field description=field.help_text %}
+            {% else %}
+                {% fluid_form_field field label='' description=field.help_text %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>

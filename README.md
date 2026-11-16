@@ -47,7 +47,7 @@ src/django_utils/
 ├── rsa_keys.py      # (extra "crypto") RSA key pairs from the environment, generated in development
 ├── management/      # base.py: DryRunCommand, CleanupCommand
 ├── gating/          # registry, system checks, ExtraPermissionsBackend
-├── templatetags/    # django_utils_gating ({% gated_block %}), django_utils_tags (language_flag)
+├── templatetags/    # django_utils_gating ({% gated_block %}), django_utils_tags (language_flag), django_utils_forms (fluid forms)
 ├── templates/       # default templates, all under django_utils/
 ├── api/             # (extra "drf") permissions, serializers, envelope, renderers, handlers,
 │                    # pagination, filters, views, private_storage
@@ -184,6 +184,17 @@ to an `expected_query_counts` case to get the same check.
 
 With `strict_coverage = True` (the default) the viewset contract also fails when an action x user permission, an
 action filterset, a user queryset or the query count of a safe action is not declared.
+
+## Fluid forms (`django_utils_forms`)
+
+- `{% load django_utils_forms %}{% render_fluid_form form show_labels=True grid_columns=2 %}` renders the CSRF token and
+  every field in a `.form-grid` (the number of columns is the CSS variable `--form-columns`); `{% fluid_form_field
+  form.email %}` renders one field. `StarRatingWidget` (`django_utils.forms`) is detected, a captcha field (by its
+  class name) gets `.form-row--captcha`.
+- A form lists in `fluid_full_width = ("subject", "message")` the fields that take the whole row of a multi-column grid
+  (`.form-row--full`).
+- The templates (`django_utils/forms/form.html`, `field_*.html`) are overridable; the library ships no CSS: the project
+  styles `.form-row`, `.form-label`, `.form-input`, `.form-grid`, `.star-rating-widget`...
 
 ## Gated features (`django_utils.gating`)
 

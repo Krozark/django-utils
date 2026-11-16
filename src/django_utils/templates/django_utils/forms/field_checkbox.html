@@ -1,0 +1,9 @@
+<div class="{{ wrapper_class }}">
+    <label class="form-checkbox-wrapper">
+        {{ field }}
+        <span class="custom-checkbox"></span>
+        <span class="checkbox-label">{{ label }}</span>
+    </label>
+    {% if description %}<div class="form-help-text">{{ description }}</div>{% endif %}
+    {% for error in field.errors %}<div class="form-message error">⚠ {{ error }}</div>{% endfor %}
+</div>

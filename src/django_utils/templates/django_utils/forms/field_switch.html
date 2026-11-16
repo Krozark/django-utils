@@ -1,0 +1,11 @@
+<div class="{{ wrapper_class }}">
+    <label class="form-switch-wrapper">
+        <div>
+            <div style="font-weight: 600;">{{ label }}</div>
+            {% if description %}<div style="color: var(--text-muted); font-size: 0.9rem;">{{ description }}</div>{% endif %}
+        </div>
+        {{ field }}
+        <span class="custom-switch"></span>
+    </label>
+    {% for error in field.errors %}<div class="form-message error">⚠ {{ error }}</div>{% endfor %}
+</div>

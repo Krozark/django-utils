@@ -1,0 +1,65 @@
+<div class="{{ wrapper_class }}">
+    <label class="form-label{% if field.field.required %} required{% endif %}" for="{{ field_id }}">{{ label }}</label>
+    <div class="form-file-wrapper" id="wrapper-{{ field_id }}">
+        {{ field }}
+        <label for="{{ field_id }}" class="form-file-label">
+            <span class="form-file-icon">📁</span>
+            <span class="form-file-text">
+                <span class="form-file-placeholder">Choose a file or drag and drop</span>
+                <span class="form-file-name" style="display: none;"></span>
+            </span>
+        </label>
+    </div>
+    {% if description %}<div class="form-help-text">{{ description }}</div>{% endif %}
+    {% for error in field.errors %}<div class="form-message error">⚠ {{ error }}</div>{% endfor %}
+    <script>
+    (function() {
+        const input = document.getElementById('{{ field_id }}');
+        const wrapper = document.getElementById('wrapper-{{ field_id }}');
+        const placeholder = wrapper.querySelector('.form-file-placeholder');
+        const filename = wrapper.querySelector('.form-file-name');
+        const label = wrapper.querySelector('.form-file-label');
+
+        function updateFileName() {
+            if (input.files && input.files.length > 0) {
+                placeholder.style.display = 'none';
+                filename.style.display = 'block';
+                filename.textContent = input.files[0].name;
+                wrapper.classList.add('has-file');
+            } else {
+                placeholder.style.display = 'block';
+                filename.style.display = 'none';
+                wrapper.classList.remove('has-file');
+            }
+        }
+
+        input.addEventListener('change', updateFileName);
+
+        // Drag and drop support
+        label.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            label.style.borderColor = 'var(--color-decoration-light)';
+            label.style.background = 'var(--color-decoration-light-alpha-10)';
+        });
+
+        label.addEventListener('dragleave', () => {
+            label.style.borderColor = '';
+            label.style.background = '';
+        });
+
+        label.addEventListener('drop', (e) => {
+            e.preventDefault();
+            label.style.borderColor = '';
+            label.style.background = '';
+
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                input.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+
+        // Check for existing file on page load
+        updateFileName();
+    })();
+    </script>
+</div>
