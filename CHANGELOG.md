@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- Drop Django 5.0 and 5.1: Django 5.2 or later is required.
+- Add `django_utils.testing` (extra `testing`): `TestCase`/`SimpleTestCase` with frozen time, media cleanup and
+  factory-friendly `users`, `subtests_cases`, `with_fixtures`, `rollback_atomic`, and contract test cases for models,
+  fields, lookups and managers. `django_utils.testing.api` (also needs `drf`) adds contract test cases for
+  serializers, filtersets and viewsets, factory-boy factories for the mixins (`django_utils.testing.factories`), `RequestBuilderMixin` and `QueryCountMixin` (N+1 detection, also available as the `create` key of the viewset
+  contract `expected_query_counts`).
+- `ModelContractTestCase` only generates `test_repr` and `test_verbose_names` when `expected_repr` and
+  `expected_verbose_names` are declared, instead of reporting skipped tests.
+- `ModelContractTestCase` ignores the properties that libraries such as django-polymorphic generate at runtime, which
+  made `expected_properties` depend on the order of the tests.
+- `ViewSetContractTestCase`: `expected_serializer_classes` and `expected_filterset_classes` now run with the fixtures, so
+  `action_url_kwargs` callables can use `self.instances` for detail actions.
+- Contract test cases: a project base class that only shares defaults sets `abstract_contract = True` to be skipped
+  when collected (the flag is not inherited).
+- `ViewSetContractTestCase`: `query_params` may be a callable taking the test case, to use the fixtures.
+- `ViewSetContractTestCase`: `{"user": ..., "unreachable": True}` in `expected_querysets` covers a user the
+  permissions always turn away.
+- `ViewSetContractTestCase`: the authenticated user is rebuilt for each request, so what Django cached on the test's
+  user (permissions, profile) no longer lowers `expected_query_counts`. Override `build_authenticated_user()` to
+  prepare it like the authentication of the project does. Its permissions are loaded before counting: a count
+  is the queries of the view, not those of the authentication and of the permission checks. Each count is measured without any cache of the
+  process (content types, local-memory caches), so it never depends on the order of the tests.
+- `TestCase` and `SimpleTestCase` empty the caches of the process before each test (`CacheIsolationMixin`,
+  `clear_process_caches()`): content types and local-memory caches. A shared cache is never emptied.
+  `assert_query_count` measures each request cold too, instead of warming the caches up first, and the
+  viewset contract authenticates a new user before each measure (`before_each_measure()` hook).
+- `subtests_cases` empties the caches of the process before each case, like each test starts without them.
 - `StorageSizeMixin.save(update_fields=None)` raised a `TypeError`: `None` ("save every field") is now passed through,
   like `AutoVersionFieldMixin` does.
 - Add `is_safe_redirect_url(request, url)`: whether a `?next=` target stays on the site.
