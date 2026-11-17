@@ -6,7 +6,8 @@
   form, `{% fluid_form_field field %}` and `{% star_rating_field %}` one field. The templates are under
   `django_utils/forms/` (overridable), the style is provided by the project. A form lists in `fluid_full_width` the
   fields that take the whole row of the grid; a captcha is laid out on one line (`form-row--captcha`).
-- Add `django_utils.forms.StarRatingWidget`.
+- Add `django_utils.forms.StarRatingWidget` (everything it renders is escaped: the value is echoed back from the
+  submitted data when a form is invalid).
 - Drop Django 5.0 and 5.1: Django 5.2 or later is required.
 - Add `django_utils.testing` (extra `testing`): `TestCase`/`SimpleTestCase` with frozen time, media cleanup and
   factory-friendly `users`, `subtests_cases`, `with_fixtures`, `rollback_atomic`, and contract test cases for models,
