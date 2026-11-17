@@ -256,6 +256,12 @@ class StarRatingWidgetTests(SimpleTestCase):
         self.assertIn('name="rating"', html)
         self.assertIn('value="3"', html)
 
+    def test_the_value_and_the_name_are_escaped(self):
+        html = StarRatingWidget().render('r"><script>', '"><script>alert(1)</script>', {"id": 'x"y'})
+
+        self.assertNotIn("<script>", html)
+        self.assertNotIn('"><', html.replace('"><button', "").replace('"></div>', ""))
+
     def test_the_value_comes_from_the_data(self):
         self.assertEqual(StarRatingWidget().value_from_datadict({"rating": "4"}, {}, "rating"), "4")
 

@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 
 __all__ = ["StarRatingWidget"]
 
@@ -16,13 +16,20 @@ class StarRatingWidget(forms.Widget):
         widget_id = final_attrs.get("id", f"id_{name}")
         current_value = str(value) if value not in (None, "") else ""
 
-        stars = "".join(
-            f'<button type="button" class="star" data-value="{i}" aria-label="{i}">★</button>' for i in range(1, 6)
+        # ``value`` is echoed back from the submitted data when the form is invalid: everything is escaped.
+        stars = format_html_join(
+            "",
+            '<button type="button" class="star" data-value="{0}" aria-label="{0}">★</button>',
+            ((i,) for i in range(1, 6)),
         )
-        hidden = (
-            f'<input type="hidden" name="{name}" id="{widget_id}" class="star-rating-input" value="{current_value}">'
+        return format_html(
+            '<div class="star-rating-widget" role="radiogroup">{}'
+            '<input type="hidden" name="{}" id="{}" class="star-rating-input" value="{}"></div>',
+            stars,
+            name,
+            widget_id,
+            current_value,
         )
-        return mark_safe(f'<div class="star-rating-widget" role="radiogroup">{stars}{hidden}</div>')
 
     def value_from_datadict(self, data, files, name):
         return data.get(name)
