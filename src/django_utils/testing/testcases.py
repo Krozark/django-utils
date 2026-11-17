@@ -1,8 +1,12 @@
 from django.test import SimpleTestCase as DjangoSimpleTestCase
 from django.test import TestCase as DjangoTestCase
-from rest_framework.test import APIClient
 
 from .mixins import CacheIsolationMixin, FrozenTimeMixin, MediaCleanupMixin
+
+try:
+    from rest_framework.test import APIClient
+except ImportError:  # pragma: no cover - depends on the installed extras
+    APIClient = None
 
 __all__ = ["SimpleTestCase", "TestCase"]
 
@@ -14,14 +18,14 @@ class SimpleTestCase(FrozenTimeMixin, CacheIsolationMixin, DjangoSimpleTestCase)
 
 
 class TestCase(FrozenTimeMixin, MediaCleanupMixin, CacheIsolationMixin, DjangoTestCase):
-    """Django ``TestCase`` with frozen time, media cleanup, a DRF client and lazily built ``users``.
+    """Django ``TestCase`` with frozen time, media cleanup, a DRF client (``drf`` extra) and lazily built ``users``.
 
     ``users`` maps a key to ``None`` (anonymous), a model instance, or a callable creating the user
     (typically a factory-boy call). Callables are resolved once per class, in ``setUpTestData``.
     """
 
     maxDiff = None
-    client_class = APIClient
+    client_class = APIClient or DjangoTestCase.client_class  # the DRF client needs the ``drf`` extra
     users = {}
 
     @classmethod

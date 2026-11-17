@@ -22,7 +22,7 @@ Optional features come with extras, for instance
 | `drf` | the REST framework helpers (`django_utils.api`) |
 | `private-storage` | `django_utils.api.private_storage` (also needs DRF) |
 | `crypto` | `django_utils.rsa_keys` |
-| `testing` | `django_utils.testing` (factory-boy and freezegun; its `api` part also needs `drf`) |
+| `testing` | `django_utils.testing` (factory-boy and freezegun; its `api` part and the DRF test client also need `drf`) |
 
 Then add it to `INSTALLED_APPS`:
 
